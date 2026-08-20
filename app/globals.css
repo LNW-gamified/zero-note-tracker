@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 body {
-  background-color: #f1e9d8;
-  background-image: radial-gradient(circle at 1px 1px, rgba(27, 42, 61, 0.07) 1px, transparent 0);
+  background-color: #161b22;
+  background-image: radial-gradient(circle at 1px 1px, rgba(236, 230, 214, 0.05) 1px, transparent 0);
   background-size: 18px 18px;
 }
 
 .guilloche-rule {
   background-image: repeating-linear-gradient(
     90deg,
-    rgba(47, 110, 107, 0.5) 0px,
-    rgba(47, 110, 107, 0.5) 1px,
+    rgba(79, 185, 179, 0.35) 0px,
+    rgba(79, 185, 179, 0.35) 1px,
     transparent 1px,
     transparent 6px
   );
@@ -25,8 +25,8 @@ body {
   position: absolute;
   top: 14px;
   right: 14px;
-  border: 3px solid #b33a3a;
-  color: #b33a3a;
+  border: 3px solid #e2665f;
+  color: #e2665f;
   border-radius: 9999px;
   padding: 6px 10px;
   font-family: var(--font-plex-mono);
@@ -34,7 +34,7 @@ body {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   transform: rotate(-9deg);
-  background: rgba(241, 233, 216, 0.85);
+  background: rgba(16, 20, 26, 0.85);
   pointer-events: none;
   animation: stamp-in 240ms ease-out;
 }

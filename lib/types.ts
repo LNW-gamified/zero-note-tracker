@@ -1,9 +1,10 @@
 export type ZeroNote = {
   id: string;
-  title: string;
+  name: string;
   country: string;
   city: string | null;
   year: number | null;
+  identification: string | null;
   photo_url: string | null;
   collected: boolean;
   collected_date: string | null;
@@ -17,6 +18,7 @@ export type CurrencyItem = {
   country: string;
   denomination: string;
   item_type: "coin" | "note";
+  year: number | null;
   photo_url: string | null;
   collected: boolean;
   collected_date: string | null;

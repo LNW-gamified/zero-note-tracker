@@ -51,7 +51,7 @@ export default function AddItemForm({
               {f.options ? (
                 <select
                   required={f.required}
-                  className="rounded-sm border border-ink/30 bg-[#faf6ec] px-2 py-1.5"
+                  className="rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1.5"
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [f.name]: e.target.value }))
                   }
@@ -68,7 +68,7 @@ export default function AddItemForm({
                   type={f.type ?? "text"}
                   required={f.required}
                   placeholder={f.placeholder}
-                  className="rounded-sm border border-ink/30 bg-[#faf6ec] px-2 py-1.5"
+                  className="rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1.5"
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [f.name]: e.target.value }))
                   }
