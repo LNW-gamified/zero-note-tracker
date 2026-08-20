@@ -109,22 +109,24 @@ export default function ItemCard({
       <div className="guilloche-rule" />
 
       <div className="px-3 pb-3 pt-2">
-        <div className="mb-1 flex items-center justify-between">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
-            Added {formatShortDate(addedAt)}
-          </span>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <h3 className="min-w-0 flex-1 truncate font-display text-base leading-snug text-ink">
+            {title}
+          </h3>
           {flag && (
-            <span className="flag-outline text-5xl leading-none" title={country}>
+            <span className="flag-outline shrink-0 text-5xl leading-none" title={country}>
               {flag}
             </span>
           )}
         </div>
+        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-ink/40">
+          Added {formatShortDate(addedAt)}
+        </p>
         {collected && collectedDate && (
           <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-teal/80">
             Collected {formatShortDate(collectedDate)}
           </p>
         )}
-        <h3 className="font-display text-base leading-snug text-ink">{title}</h3>
         <p className="text-sm text-ink/70">{subtitle}</p>
         {meta && <p className="text-xs text-ink/50">{meta}</p>}
         {notes && <p className="mt-1 text-xs italic text-ink/40">{notes}</p>}
