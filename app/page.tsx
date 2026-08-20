@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { uploadPhoto, deletePhoto } from "@/lib/storage";
 import { ZeroNote, CurrencyItem } from "@/lib/types";
 import ItemCard from "@/components/ItemCard";
+import ItemRow from "@/components/ItemRow";
 import Tabs from "@/components/Tabs";
 import AddItemForm, { Field } from "@/components/AddItemForm";
 import AddCurrencyForm, { CurrencyFormValues } from "@/components/AddCurrencyForm";
@@ -53,6 +54,7 @@ export default function Home() {
   const [noteSort, setNoteSort] = useState<"date" | "country">("date");
   const [currencySort, setCurrencySort] = useState<"country" | "date">("country");
   const [search, setSearch] = useState("");
+  const [view, setView] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -347,6 +349,19 @@ export default function Home() {
               <option value="date">Newest first</option>
             </select>
           )}
+          <div className="flex gap-1 font-mono text-xs uppercase tracking-widest">
+            {(["grid", "list"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`rounded-sm border px-2 py-1 ${
+                  view === v ? "border-ink bg-ink text-paper" : "border-ink/30 text-ink/60"
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
           <button
             onClick={() => setShowAdd(true)}
             className="rounded-sm border border-stamp bg-stamp px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-paper"
@@ -367,7 +382,7 @@ export default function Home() {
       ) : tab === "notes" ? (
         filteredNotes.length === 0 ? (
           <EmptyState label={search ? "No matches." : "No 0€ notes here yet. Add the first one."} />
-        ) : (
+        ) : view === "grid" ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {filteredNotes.map((n, i) => (
               <ItemCard
@@ -378,6 +393,29 @@ export default function Home() {
                 meta={[n.year, n.identification].filter(Boolean).join(" · ") || undefined}
                 notes={n.notes}
                 country={n.country}
+                addedAt={n.created_at}
+                photoUrl={n.photo_url}
+                collected={n.collected}
+                collectedDate={n.collected_date}
+                onToggle={() => toggleNote(n)}
+                onPhotoSelected={(file) => uploadNotePhoto(n, file)}
+                onEdit={() => setEditingNote(n)}
+                onDelete={() => deleteNote(n)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-sm border border-ink/10">
+            {filteredNotes.map((n) => (
+              <ItemRow
+                key={n.id}
+                serial=""
+                title={n.name}
+                subtitle={[n.city, n.country].filter(Boolean).join(", ")}
+                meta={[n.year, n.identification].filter(Boolean).join(" · ") || undefined}
+                notes={n.notes}
+                country={n.country}
+                addedAt={n.created_at}
                 photoUrl={n.photo_url}
                 collected={n.collected}
                 collectedDate={n.collected_date}
@@ -391,7 +429,7 @@ export default function Home() {
         )
       ) : filteredCurrency.length === 0 ? (
         <EmptyState label={search ? "No matches." : "No currency items here yet. Add the first one."} />
-      ) : (
+      ) : view === "grid" ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {filteredCurrency.map((c, i) => (
             <ItemCard
@@ -402,6 +440,29 @@ export default function Home() {
               meta={[c.item_type, c.year].filter(Boolean).join(" · ")}
               notes={c.notes}
               country={c.country}
+              addedAt={c.created_at}
+              photoUrl={c.photo_url}
+              collected={c.collected}
+              collectedDate={c.collected_date}
+              onToggle={() => toggleCurrency(c)}
+              onPhotoSelected={(file) => uploadCurrencyPhoto(c, file)}
+              onEdit={() => setEditingCurrency(c)}
+              onDelete={() => deleteCurrency(c)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-sm border border-ink/10">
+          {filteredCurrency.map((c) => (
+            <ItemRow
+              key={c.id}
+              serial=""
+              title={c.denomination}
+              subtitle={`${c.currency_name} · ${c.country}`}
+              meta={[c.item_type, c.year].filter(Boolean).join(" · ")}
+              notes={c.notes}
+              country={c.country}
+              addedAt={c.created_at}
               photoUrl={c.photo_url}
               collected={c.collected}
               collectedDate={c.collected_date}

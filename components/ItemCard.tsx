@@ -11,6 +11,8 @@ export type ItemCardProps = {
   meta?: string;
   notes?: string | null;
   country?: string;
+  hideFlag?: boolean;
+  addedAt: string;
   photoUrl: string | null;
   collected: boolean;
   collectedDate: string | null;
