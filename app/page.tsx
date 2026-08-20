@@ -323,7 +323,7 @@ export default function Home() {
   const noteCount = `${notes.filter((n) => n.collected).length}/${notes.length}`;
   const currencyCount = `${currency.filter((c) => c.collected).length}/${currency.length}`;
 
-  function noteCardProps(n: ZeroNote, hideFlag: boolean) {
+  function noteCardProps(n: ZeroNote) {
     return {
       addedAt: n.created_at,
       title: n.name,
@@ -331,7 +331,6 @@ export default function Home() {
       meta: [n.year, n.identification].filter(Boolean).join(" · ") || undefined,
       notes: n.notes,
       country: n.country,
-      hideFlag,
       photoUrl: n.photo_url,
       collected: n.collected,
       collectedDate: n.collected_date,
@@ -342,7 +341,7 @@ export default function Home() {
     };
   }
 
-  function currencyCardProps(c: CurrencyItem, hideFlag: boolean) {
+  function currencyCardProps(c: CurrencyItem) {
     return {
       addedAt: c.created_at,
       title: c.denomination,
@@ -350,7 +349,6 @@ export default function Home() {
       meta: [c.item_type, c.year].filter(Boolean).join(" · "),
       notes: c.notes,
       country: c.country,
-      hideFlag,
       photoUrl: c.photo_url,
       collected: c.collected,
       collectedDate: c.collected_date,
@@ -501,13 +499,13 @@ export default function Home() {
                 {viewMode === "grid" ? (
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                     {group.items.map((n) => (
-                      <ItemCard key={n.id} {...noteCardProps(n, true)} />
+                      <ItemCard key={n.id} {...noteCardProps(n)} />
                     ))}
                   </div>
                 ) : (
                   <div className="flex flex-col">
                     {group.items.map((n) => (
-                      <ItemRow key={n.id} {...noteCardProps(n, true)} />
+                      <ItemRow key={n.id} {...noteCardProps(n)} />
                     ))}
                   </div>
                 )}
@@ -517,13 +515,13 @@ export default function Home() {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {filteredNotes.map((n) => (
-              <ItemCard key={n.id} {...noteCardProps(n, false)} />
+              <ItemCard key={n.id} {...noteCardProps(n)} />
             ))}
           </div>
         ) : (
           <div className="flex flex-col">
             {filteredNotes.map((n) => (
-              <ItemRow key={n.id} {...noteCardProps(n, false)} />
+              <ItemRow key={n.id} {...noteCardProps(n)} />
             ))}
           </div>
         )
@@ -537,13 +535,13 @@ export default function Home() {
               {viewMode === "grid" ? (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {group.items.map((c) => (
-                    <ItemCard key={c.id} {...currencyCardProps(c, true)} />
+                    <ItemCard key={c.id} {...currencyCardProps(c)} />
                   ))}
                 </div>
               ) : (
                 <div className="flex flex-col">
                   {group.items.map((c) => (
-                    <ItemRow key={c.id} {...currencyCardProps(c, true)} />
+                    <ItemRow key={c.id} {...currencyCardProps(c)} />
                   ))}
                 </div>
               )}
@@ -553,13 +551,13 @@ export default function Home() {
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {filteredCurrency.map((c) => (
-            <ItemCard key={c.id} {...currencyCardProps(c, false)} />
+            <ItemCard key={c.id} {...currencyCardProps(c)} />
           ))}
         </div>
       ) : (
         <div className="flex flex-col">
           {filteredCurrency.map((c) => (
-            <ItemRow key={c.id} {...currencyCardProps(c, false)} />
+            <ItemRow key={c.id} {...currencyCardProps(c)} />
           ))}
         </div>
       )}

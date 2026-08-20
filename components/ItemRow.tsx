@@ -12,7 +12,6 @@ export default function ItemRow({
   subtitle,
   meta,
   country,
-  hideFlag,
   photoUrl,
   collected,
   collectedDate,
@@ -24,7 +23,7 @@ export default function ItemRow({
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const flag = hideFlag ? null : getFlagEmoji(country);
+  const flag = getFlagEmoji(country);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

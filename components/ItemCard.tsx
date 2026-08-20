@@ -12,7 +12,6 @@ export type ItemCardProps = {
   meta?: string;
   notes?: string | null;
   country?: string;
-  hideFlag?: boolean;
   photoUrl: string | null;
   collected: boolean;
   collectedDate: string | null;
@@ -29,7 +28,6 @@ export default function ItemCard({
   meta,
   notes,
   country,
-  hideFlag,
   photoUrl,
   collected,
   collectedDate,
@@ -41,7 +39,7 @@ export default function ItemCard({
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const flag = hideFlag ? null : getFlagEmoji(country);
+  const flag = getFlagEmoji(country);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
