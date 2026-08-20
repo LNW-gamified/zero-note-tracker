@@ -3,16 +3,16 @@
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { getFlagEmoji } from "@/lib/countryFlags";
+import { formatShortDate } from "@/lib/formatDate";
 
 export type ItemCardProps = {
-  serial: string;
+  addedAt: string;
   title: string;
   subtitle: string;
   meta?: string;
   notes?: string | null;
   country?: string;
   hideFlag?: boolean;
-  addedAt: string;
   photoUrl: string | null;
   collected: boolean;
   collectedDate: string | null;
@@ -23,12 +23,13 @@ export type ItemCardProps = {
 };
 
 export default function ItemCard({
-  serial,
+  addedAt,
   title,
   subtitle,
   meta,
   notes,
   country,
+  hideFlag,
   photoUrl,
   collected,
   collectedDate,
@@ -40,7 +41,7 @@ export default function ItemCard({
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const flag = getFlagEmoji(country);
+  const flag = hideFlag ? null : getFlagEmoji(country);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -109,7 +110,9 @@ export default function ItemCard({
 
       <div className="p-3">
         <div className="mb-1 flex items-center justify-between">
-          <span className="serial text-[10px] text-teal">{serial}</span>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
+            Added {formatShortDate(addedAt)}
+          </span>
           {flag && (
             <span className="text-5xl leading-none" title={country}>
               {flag}

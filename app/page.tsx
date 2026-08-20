@@ -384,10 +384,9 @@ export default function Home() {
           <EmptyState label={search ? "No matches." : "No 0€ notes here yet. Add the first one."} />
         ) : view === "grid" ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {filteredNotes.map((n, i) => (
+            {filteredNotes.map((n) => (
               <ItemCard
                 key={n.id}
-                serial={`NO.${String(i + 1).padStart(3, "0")}`}
                 title={n.name}
                 subtitle={[n.city, n.country].filter(Boolean).join(", ")}
                 meta={[n.year, n.identification].filter(Boolean).join(" · ") || undefined}
@@ -409,7 +408,6 @@ export default function Home() {
             {filteredNotes.map((n) => (
               <ItemRow
                 key={n.id}
-                serial=""
                 title={n.name}
                 subtitle={[n.city, n.country].filter(Boolean).join(", ")}
                 meta={[n.year, n.identification].filter(Boolean).join(" · ") || undefined}
@@ -431,10 +429,9 @@ export default function Home() {
         <EmptyState label={search ? "No matches." : "No currency items here yet. Add the first one."} />
       ) : view === "grid" ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {filteredCurrency.map((c, i) => (
+          {filteredCurrency.map((c) => (
             <ItemCard
               key={c.id}
-              serial={`CU.${String(i + 1).padStart(3, "0")}`}
               title={c.denomination}
               subtitle={`${c.currency_name} · ${c.country}`}
               meta={[c.item_type, c.year].filter(Boolean).join(" · ")}
@@ -456,7 +453,6 @@ export default function Home() {
           {filteredCurrency.map((c) => (
             <ItemRow
               key={c.id}
-              serial=""
               title={c.denomination}
               subtitle={`${c.currency_name} · ${c.country}`}
               meta={[c.item_type, c.year].filter(Boolean).join(" · ")}
