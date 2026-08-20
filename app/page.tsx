@@ -67,6 +67,8 @@ export default function Home() {
   const [filter, setFilter] = useState<"all" | "collected" | "missing">("all");
   const [noteSort, setNoteSort] = useState<"date" | "country">("date");
   const [currencySort, setCurrencySort] = useState<"country" | "date">("country");
+  const [noteCountryFilter, setNoteCountryFilter] = useState<string>("");
+  const [currencyCountryFilter, setCurrencyCountryFilter] = useState<string>("");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
@@ -94,40 +96,53 @@ export default function Home() {
     [currency]
   );
 
+  const noteCountries = useMemo(
+    () => Array.from(new Set(notes.map((n) => n.country))).sort(),
+    [notes]
+  );
+  const currencyCountries = useMemo(
+    () => Array.from(new Set(currency.map((c) => c.country))).sort(),
+    [currency]
+  );
+
   const filteredNotes = useMemo(() => {
     const byFilter = notes.filter((n) =>
       filter === "all" ? true : filter === "collected" ? n.collected : !n.collected
     );
+    const byCountry = noteCountryFilter ? byFilter.filter((n) => n.country === noteCountryFilter) : byFilter;
     const q = search.trim().toLowerCase();
     const bySearch = q
-      ? byFilter.filter((n) =>
+      ? byCountry.filter((n) =>
           [n.name, n.country, n.city, n.identification, n.notes]
             .filter(Boolean)
             .join(" ")
             .toLowerCase()
             .includes(q)
         )
-      : byFilter;
+      : byCountry;
     if (noteSort === "country") {
       return [...bySearch].sort((a, b) => a.country.localeCompare(b.country));
     }
     return bySearch;
-  }, [notes, filter, noteSort, search]);
+  }, [notes, filter, noteSort, search, noteCountryFilter]);
 
   const filteredCurrency = useMemo(() => {
     const byFilter = currency.filter((c) =>
       filter === "all" ? true : filter === "collected" ? c.collected : !c.collected
     );
+    const byCountry = currencyCountryFilter
+      ? byFilter.filter((c) => c.country === currencyCountryFilter)
+      : byFilter;
     const q = search.trim().toLowerCase();
     const bySearch = q
-      ? byFilter.filter((c) =>
+      ? byCountry.filter((c) =>
           [c.currency_name, c.country, c.denomination, c.item_type, c.notes]
             .filter(Boolean)
             .join(" ")
             .toLowerCase()
             .includes(q)
         )
-      : byFilter;
+      : byCountry;
     if (currencySort === "date") {
       return [...bySearch].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -136,7 +151,7 @@ export default function Home() {
     return [...bySearch].sort(
       (a, b) => a.country.localeCompare(b.country) || a.denomination.localeCompare(b.denomination)
     );
-  }, [currency, filter, search, currencySort]);
+  }, [currency, filter, search, currencySort, currencyCountryFilter]);
 
   async function toggleNote(n: ZeroNote) {
     const collected = !n.collected;
@@ -392,6 +407,33 @@ export default function Home() {
               className="rounded-sm border border-ink/30 bg-[#1e2530] py-1 pl-7 pr-2 text-sm text-ink/80 placeholder:text-ink/30"
             />
           </div>
+          {tab === "notes" ? (
+            <select
+              value={noteCountryFilter}
+              onChange={(e) => setNoteCountryFilter(e.target.value)}
+              className="min-w-[130px] rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-wide text-ink/70"
+            >
+              <option value="">All countries</option>
+              {noteCountries.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <select
+              value={currencyCountryFilter}
+              onChange={(e) => setCurrencyCountryFilter(e.target.value)}
+              className="min-w-[130px] rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-wide text-ink/70"
+            >
+              <option value="">All countries</option>
+              {currencyCountries.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <div className="flex gap-1 font-mono text-xs uppercase tracking-widest">
@@ -572,7 +614,11 @@ function GroupHeader({ country, count }: { country: string; count: number }) {
   const flag = getFlagEmoji(country);
   return (
     <div className="mb-2 flex items-center gap-2 border-b border-ink/10 pb-1">
-      {flag && <span className="text-2xl leading-none">{flag}</span>}
+      {flag && (
+        <span className="inline-flex rounded-sm border border-ink/30 bg-black/25 px-1 py-0.5">
+          <span className="block text-2xl leading-none">{flag}</span>
+        </span>
+      )}
       <h2 className="font-display text-lg text-ink">{country}</h2>
       <span className="font-mono text-xs text-ink/40">{count}</span>
     </div>

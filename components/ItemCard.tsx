@@ -75,7 +75,7 @@ export default function ItemCard({
           {collectedDate ? (
             <>
               <br />
-              {collectedDate}
+              {formatShortDate(collectedDate)}
             </>
           ) : null}
         </div>
@@ -108,17 +108,25 @@ export default function ItemCard({
 
       <div className="guilloche-rule" />
 
-      <div className="p-3">
+      <div className="px-3 pb-3 pt-2">
         <div className="mb-1 flex items-center justify-between">
           <span className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
             Added {formatShortDate(addedAt)}
           </span>
           {flag && (
-            <span className="text-5xl leading-none" title={country}>
-              {flag}
+            <span
+              className="inline-flex rounded-sm border border-ink/30 bg-black/25 px-1.5 py-1"
+              title={country}
+            >
+              <span className="block text-5xl leading-none">{flag}</span>
             </span>
           )}
         </div>
+        {collected && collectedDate && (
+          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-teal/80">
+            Collected {formatShortDate(collectedDate)}
+          </p>
+        )}
         <h3 className="font-display text-base leading-snug text-ink">{title}</h3>
         <p className="text-sm text-ink/70">{subtitle}</p>
         {meta && <p className="text-xs text-ink/50">{meta}</p>}

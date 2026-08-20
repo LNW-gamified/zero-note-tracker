@@ -74,7 +74,11 @@ export default function ItemRow({
         />
       </div>
 
-      {flag && <span className="shrink-0 text-2xl leading-none">{flag}</span>}
+      {flag && (
+        <span className="inline-flex shrink-0 rounded-sm border border-ink/30 bg-black/25 px-1 py-0.5">
+          <span className="block text-2xl leading-none">{flag}</span>
+        </span>
+      )}
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
@@ -91,7 +95,7 @@ export default function ItemRow({
         </p>
         <p className="font-mono text-[9px] uppercase tracking-widest text-ink/30">
           Added {formatShortDate(addedAt)}
-          {collected && collectedDate ? ` · Collected ${collectedDate}` : ""}
+          {collected && collectedDate ? ` · Collected ${formatShortDate(collectedDate)}` : ""}
         </p>
       </div>
 
