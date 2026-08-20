@@ -6,21 +6,27 @@ export type Field = {
   name: string;
   label: string;
   placeholder?: string;
-  type?: "text" | "number";
+  type?: "text" | "number" | "textarea";
   required?: boolean;
   options?: string[];
 };
 
 export default function AddItemForm({
   fields,
+  initialValues,
+  heading = "Add to the ledger",
+  submitLabel = "Add",
   onSubmit,
   onClose,
 }: {
   fields: Field[];
+  initialValues?: Record<string, string>;
+  heading?: string;
+  submitLabel?: string;
   onSubmit: (values: Record<string, string>) => Promise<void>;
   onClose: () => void;
 }) {
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(initialValues ?? {});
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -40,7 +46,7 @@ export default function AddItemForm({
         onSubmit={handleSubmit}
         className="w-full max-w-md rounded-t-md border-2 border-ink/20 bg-paper p-5 sm:rounded-md"
       >
-        <h2 className="mb-4 font-display text-lg">Add to the ledger</h2>
+        <h2 className="mb-4 font-display text-lg">{heading}</h2>
 
         <div className="flex flex-col gap-3">
           {fields.map((f) => (
@@ -52,6 +58,7 @@ export default function AddItemForm({
                 <select
                   required={f.required}
                   className="rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1.5"
+                  value={values[f.name] ?? ""}
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [f.name]: e.target.value }))
                   }
@@ -63,12 +70,24 @@ export default function AddItemForm({
                     </option>
                   ))}
                 </select>
+              ) : f.type === "textarea" ? (
+                <textarea
+                  required={f.required}
+                  placeholder={f.placeholder}
+                  rows={3}
+                  className="rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1.5"
+                  value={values[f.name] ?? ""}
+                  onChange={(e) =>
+                    setValues((v) => ({ ...v, [f.name]: e.target.value }))
+                  }
+                />
               ) : (
                 <input
                   type={f.type ?? "text"}
                   required={f.required}
                   placeholder={f.placeholder}
                   className="rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1.5"
+                  value={values[f.name] ?? ""}
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [f.name]: e.target.value }))
                   }
@@ -91,7 +110,7 @@ export default function AddItemForm({
             disabled={saving}
             className="flex-1 rounded-sm border border-teal bg-teal px-3 py-2 text-sm text-paper disabled:opacity-50"
           >
-            {saving ? "Saving…" : "Add"}
+            {saving ? "Saving…" : submitLabel}
           </button>
         </div>
       </form>

@@ -7,11 +7,14 @@ export type ItemCardProps = {
   title: string;
   subtitle: string;
   meta?: string;
+  notes?: string | null;
   photoUrl: string | null;
   collected: boolean;
   collectedDate: string | null;
   onToggle: () => void;
   onPhotoSelected: (file: File) => Promise<void>;
+  onEdit: () => void;
+  onDelete: () => void;
 };
 
 export default function ItemCard({
@@ -19,11 +22,14 @@ export default function ItemCard({
   title,
   subtitle,
   meta,
+  notes,
   photoUrl,
   collected,
   collectedDate,
   onToggle,
   onPhotoSelected,
+  onEdit,
+  onDelete,
 }: ItemCardProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -38,6 +44,13 @@ export default function ItemCard({
       setUploading(false);
       if (fileInput.current) fileInput.current.value = "";
     }
+  }
+
+  function handlePhotoClick() {
+    if (photoUrl && !window.confirm("Replace the existing photo? The old one can't be recovered.")) {
+      return;
+    }
+    fileInput.current?.click();
   }
 
   return (
@@ -60,7 +73,7 @@ export default function ItemCard({
 
       <div
         className="relative h-36 w-full cursor-pointer overflow-hidden bg-ink/5"
-        onClick={() => fileInput.current?.click()}
+        onClick={handlePhotoClick}
       >
         {photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -94,6 +107,7 @@ export default function ItemCard({
         <h3 className="font-display text-base leading-snug text-ink">{title}</h3>
         <p className="text-sm text-ink/70">{subtitle}</p>
         {meta && <p className="text-xs text-ink/50">{meta}</p>}
+        {notes && <p className="mt-1 text-xs italic text-ink/40">{notes}</p>}
 
         <button
           onClick={onToggle}
@@ -105,6 +119,21 @@ export default function ItemCard({
         >
           {collected ? "Mark not collected" : "Mark collected"}
         </button>
+
+        <div className="mt-2 flex gap-2 font-mono text-[10px] uppercase tracking-widest">
+          <button
+            onClick={onEdit}
+            className="flex-1 rounded-sm border border-ink/20 px-2 py-1 text-ink/50 hover:border-ink/40 hover:text-ink"
+          >
+            Edit
+          </button>
+          <button
+            onClick={onDelete}
+            className="flex-1 rounded-sm border border-stamp/30 px-2 py-1 text-stamp/60 hover:border-stamp hover:text-stamp"
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   );

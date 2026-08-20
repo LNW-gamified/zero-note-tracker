@@ -9,6 +9,7 @@ export type CurrencyFormValues = {
   item_type: "coin" | "note";
   country: string;
   year: string;
+  notes: string;
 };
 
 const labelClass = "font-mono text-[10px] uppercase tracking-widest text-ink/60";
@@ -17,17 +18,27 @@ const inputClass = "rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1.5";
 export default function AddCurrencyForm({
   onSubmit,
   onClose,
+  initialValues,
+  existingCurrencyNames,
+  heading = "Add to the ledger",
+  submitLabel = "Add",
 }: {
   onSubmit: (values: CurrencyFormValues) => Promise<void>;
   onClose: () => void;
+  initialValues?: CurrencyFormValues;
+  existingCurrencyNames: string[];
+  heading?: string;
+  submitLabel?: string;
 }) {
-  const [currencyName, setCurrencyName] = useState("");
-  const [customCurrencyName, setCustomCurrencyName] = useState("");
+  const editing = !!initialValues;
+  const [currencyName, setCurrencyName] = useState(editing ? OTHER_CURRENCY : "");
+  const [customCurrencyName, setCustomCurrencyName] = useState(initialValues?.currency_name ?? "");
   const [denomination, setDenomination] = useState("");
-  const [customDenomination, setCustomDenomination] = useState("");
-  const [customType, setCustomType] = useState<"coin" | "note">("coin");
-  const [country, setCountry] = useState("");
-  const [year, setYear] = useState("");
+  const [customDenomination, setCustomDenomination] = useState(initialValues?.denomination ?? "");
+  const [customType, setCustomType] = useState<"coin" | "note">(initialValues?.item_type ?? "coin");
+  const [country, setCountry] = useState(initialValues?.country ?? "");
+  const [year, setYear] = useState(initialValues?.year ?? "");
+  const [notes, setNotes] = useState(initialValues?.notes ?? "");
   const [saving, setSaving] = useState(false);
 
   const selectedCurrency = useMemo(
@@ -55,6 +66,7 @@ export default function AddCurrencyForm({
         item_type: finalType,
         country,
         year,
+        notes,
       });
       onClose();
     } finally {
@@ -68,7 +80,7 @@ export default function AddCurrencyForm({
         onSubmit={handleSubmit}
         className="w-full max-w-md rounded-t-md border-2 border-ink/20 bg-paper p-5 sm:rounded-md"
       >
-        <h2 className="mb-4 font-display text-lg">Add to the ledger</h2>
+        <h2 className="mb-4 font-display text-lg">{heading}</h2>
 
         <div className="flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm">
@@ -97,11 +109,26 @@ export default function AddCurrencyForm({
               <span className={labelClass}>Currency name</span>
               <input
                 required
+                list="existing-currency-names"
                 placeholder="e.g. Mexican Peso"
                 className={inputClass}
                 value={customCurrencyName}
                 onChange={(e) => setCustomCurrencyName(e.target.value)}
               />
+              <datalist id="existing-currency-names">
+                {existingCurrencyNames.map((n) => (
+                  <option key={n} value={n} />
+                ))}
+              </datalist>
+              {customCurrencyName.trim() &&
+                !existingCurrencyNames.some(
+                  (n) => n.toLowerCase() === customCurrencyName.trim().toLowerCase()
+                ) &&
+                existingCurrencyNames.length > 0 && (
+                  <span className="text-[11px] text-ink/40">
+                    New currency name — check the suggestions above aren&apos;t the same one spelled differently.
+                  </span>
+                )}
             </label>
           )}
 
@@ -172,6 +199,17 @@ export default function AddCurrencyForm({
               onChange={(e) => setYear(e.target.value)}
             />
           </label>
+
+          <label className="flex flex-col gap-1 text-sm">
+            <span className={labelClass}>Notes</span>
+            <textarea
+              rows={3}
+              placeholder="Freeform notes…"
+              className={inputClass}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </label>
         </div>
 
         <div className="mt-5 flex gap-2">
@@ -187,7 +225,7 @@ export default function AddCurrencyForm({
             disabled={saving}
             className="flex-1 rounded-sm border border-teal bg-teal px-3 py-2 text-sm text-paper disabled:opacity-50"
           >
-            {saving ? "Saving…" : "Add"}
+            {saving ? "Saving…" : submitLabel}
           </button>
         </div>
       </form>
