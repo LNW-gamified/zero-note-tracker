@@ -60,14 +60,6 @@ export default function ItemCard({
     fileInput.current?.click();
   }
 
-  function handleReplaceClick(e: React.MouseEvent) {
-    e.stopPropagation();
-    if (photoUrl && !window.confirm("Replace the existing photo? The old one can't be recovered.")) {
-      return;
-    }
-    fileInput.current?.click();
-  }
-
   return (
     <div
       className={`relative rounded-sm border-2 bg-[#1e2530] shadow-[3px_3px_0_0_rgba(0,0,0,0.35)] transition-opacity ${
@@ -91,22 +83,8 @@ export default function ItemCard({
         onClick={handlePhotoClick}
       >
         {photoUrl ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoUrl} alt={title} className="h-full w-full object-contain" />
-            {uploading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-ink/60 font-mono text-[10px] uppercase tracking-widest text-paper">
-                Uploading…
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={handleReplaceClick}
-              className="absolute bottom-1 right-1 rounded-sm border border-ink/30 bg-[#10141a]/85 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-ink/70 hover:border-ink/60 hover:text-ink"
-            >
-              Replace
-            </button>
-          </>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photoUrl} alt={title} className="h-full w-full object-contain" />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-ink/40">
             <span className="text-2xl">+</span>

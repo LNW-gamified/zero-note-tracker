@@ -22,6 +22,8 @@ export default function AddCurrencyForm({
   existingCurrencyNames,
   heading = "Add to the ledger",
   submitLabel = "Add",
+  photoUrl,
+  onPhotoSelected,
 }: {
   onSubmit: (values: CurrencyFormValues) => Promise<void>;
   onClose: () => void;
@@ -29,6 +31,8 @@ export default function AddCurrencyForm({
   existingCurrencyNames: string[];
   heading?: string;
   submitLabel?: string;
+  photoUrl?: string | null;
+  onPhotoSelected?: (file: File) => Promise<void>;
 }) {
   const editing = !!initialValues;
   const [currencyName, setCurrencyName] = useState(editing ? OTHER_CURRENCY : "");
@@ -40,6 +44,8 @@ export default function AddCurrencyForm({
   const [year, setYear] = useState(initialValues?.year ?? "");
   const [notes, setNotes] = useState(initialValues?.notes ?? "");
   const [saving, setSaving] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   const selectedCurrency = useMemo(
     () => CURRENCIES.find((c) => c.name === currencyName),
@@ -74,6 +80,23 @@ export default function AddCurrencyForm({
     }
   }
 
+  async function handlePhotoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !onPhotoSelected) return;
+    if (photoUrl && !window.confirm("Replace the existing photo? The old one can't be recovered.")) {
+      e.target.value = "";
+      return;
+    }
+    setLocalPreview(URL.createObjectURL(file));
+    setPhotoUploading(true);
+    try {
+      await onPhotoSelected(file);
+    } finally {
+      setPhotoUploading(false);
+      e.target.value = "";
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 sm:items-center">
       <form
@@ -81,6 +104,33 @@ export default function AddCurrencyForm({
         className="w-full max-w-md rounded-t-md border-2 border-ink/20 bg-paper p-5 sm:rounded-md"
       >
         <h2 className="mb-4 font-display text-lg">{heading}</h2>
+
+        {onPhotoSelected && (
+          <div className="mb-4 flex items-center gap-3">
+            {localPreview ?? photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={localPreview ?? photoUrl ?? undefined}
+                alt=""
+                className="h-16 w-16 rounded-sm border border-ink/20 object-cover"
+              />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-sm border border-dashed border-ink/30 font-mono text-[9px] uppercase tracking-widest text-ink/40">
+                None
+              </div>
+            )}
+            <label className="cursor-pointer rounded-sm border border-ink/30 px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-ink/70 hover:border-ink/50">
+              {photoUploading ? "Uploading…" : photoUrl ? "Replace photo" : "Add photo"}
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handlePhotoFile}
+              />
+            </label>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm">

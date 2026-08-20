@@ -423,6 +423,8 @@ export default function Home() {
           initialValues={noteToFormValues(editingNote)}
           heading="Edit entry"
           submitLabel="Save"
+          photoUrl={editingNote.photo_url}
+          onPhotoSelected={(file) => uploadNotePhoto(editingNote, file)}
           onSubmit={(v) => updateNote(editingNote, v)}
           onClose={() => setEditingNote(null)}
         />
@@ -442,6 +444,8 @@ export default function Home() {
           existingCurrencyNames={existingCurrencyNames}
           heading="Edit entry"
           submitLabel="Save"
+          photoUrl={editingCurrency.photo_url}
+          onPhotoSelected={(file) => uploadCurrencyPhoto(editingCurrency, file)}
         />
       )}
     </main>
