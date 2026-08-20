@@ -7,19 +7,14 @@ import { ZeroNote, CurrencyItem } from "@/lib/types";
 import ItemCard from "@/components/ItemCard";
 import Tabs from "@/components/Tabs";
 import AddItemForm, { Field } from "@/components/AddItemForm";
+import AddCurrencyForm, { CurrencyFormValues } from "@/components/AddCurrencyForm";
 
 const NOTE_FIELDS: Field[] = [
-  { name: "title", label: "Title / motif", required: true, placeholder: "e.g. Atomium" },
+  { name: "name", label: "Name", required: true, placeholder: "e.g. Atomium" },
   { name: "country", label: "Country", required: true, placeholder: "e.g. Belgium" },
   { name: "city", label: "City / site", placeholder: "e.g. Brussels" },
   { name: "year", label: "Year", type: "number", placeholder: "2017" },
-];
-
-const CURRENCY_FIELDS: Field[] = [
-  { name: "currency_name", label: "Currency", required: true, placeholder: "e.g. Swiss Franc" },
-  { name: "country", label: "Country", required: true, placeholder: "e.g. Switzerland" },
-  { name: "denomination", label: "Denomination", required: true, placeholder: "e.g. 5 franc" },
-  { name: "item_type", label: "Type", required: true, options: ["coin", "note"] },
+  { name: "identification", label: "Identification", placeholder: "e.g. serial / catalog no." },
 ];
 
 export default function Home() {
@@ -28,6 +23,7 @@ export default function Home() {
   const [currency, setCurrency] = useState<CurrencyItem[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [filter, setFilter] = useState<"all" | "collected" | "missing">("all");
+  const [noteSort, setNoteSort] = useState<"date" | "country">("date");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,13 +44,16 @@ export default function Home() {
     loadAll();
   }, []);
 
-  const filteredNotes = useMemo(
-    () =>
-      notes.filter((n) =>
-        filter === "all" ? true : filter === "collected" ? n.collected : !n.collected
-      ),
-    [notes, filter]
-  );
+  const filteredNotes = useMemo(() => {
+    const base = notes.filter((n) =>
+      filter === "all" ? true : filter === "collected" ? n.collected : !n.collected
+    );
+    if (noteSort === "country") {
+      return [...base].sort((a, b) => a.country.localeCompare(b.country));
+    }
+    return base;
+  }, [notes, filter, noteSort]);
+
   const filteredCurrency = useMemo(
     () =>
       currency.filter((c) =>
@@ -105,21 +104,23 @@ export default function Home() {
 
   async function addNote(values: Record<string, string>) {
     const { error } = await supabase.from("zero_notes").insert({
-      title: values.title,
+      name: values.name,
       country: values.country,
       city: values.city || null,
       year: values.year ? Number(values.year) : null,
+      identification: values.identification || null,
     });
     if (error) return setError(error.message);
     loadAll();
   }
 
-  async function addCurrency(values: Record<string, string>) {
+  async function addCurrency(values: CurrencyFormValues) {
     const { error } = await supabase.from("currency_items").insert({
       currency_name: values.currency_name,
       country: values.country,
       denomination: values.denomination,
       item_type: values.item_type,
+      year: values.year ? Number(values.year) : null,
     });
     if (error) return setError(error.message);
     loadAll();
@@ -140,7 +141,7 @@ export default function Home() {
 
       <Tabs active={tab} onChange={setTab} counts={{ notes: noteCount, currency: currencyCount }} />
 
-      <div className="my-4 flex items-center justify-between gap-2">
+      <div className="my-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-1 font-mono text-xs uppercase tracking-widest">
           {(["all", "collected", "missing"] as const).map((f) => (
             <button
@@ -154,12 +155,24 @@ export default function Home() {
             </button>
           ))}
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="rounded-sm border border-stamp bg-stamp px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-paper"
-        >
-          + Add
-        </button>
+        <div className="flex items-center gap-2">
+          {tab === "notes" && (
+            <select
+              value={noteSort}
+              onChange={(e) => setNoteSort(e.target.value as "date" | "country")}
+              className="rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-widest text-ink/70"
+            >
+              <option value="date">Newest first</option>
+              <option value="country">Sort by country</option>
+            </select>
+          )}
+          <button
+            onClick={() => setShowAdd(true)}
+            className="rounded-sm border border-stamp bg-stamp px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-paper"
+          >
+            + Add
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -179,9 +192,9 @@ export default function Home() {
               <ItemCard
                 key={n.id}
                 serial={`NO.${String(i + 1).padStart(3, "0")}`}
-                title={n.title}
+                title={n.name}
                 subtitle={[n.city, n.country].filter(Boolean).join(", ")}
-                meta={n.year ? String(n.year) : undefined}
+                meta={[n.year, n.identification].filter(Boolean).join(" · ") || undefined}
                 photoUrl={n.photo_url}
                 collected={n.collected}
                 collectedDate={n.collected_date}
@@ -201,7 +214,7 @@ export default function Home() {
               serial={`CU.${String(i + 1).padStart(3, "0")}`}
               title={c.denomination}
               subtitle={`${c.currency_name} · ${c.country}`}
-              meta={c.item_type}
+              meta={[c.item_type, c.year].filter(Boolean).join(" · ")}
               photoUrl={c.photo_url}
               collected={c.collected}
               collectedDate={c.collected_date}
@@ -212,12 +225,11 @@ export default function Home() {
         </div>
       )}
 
-      {showAdd && (
-        <AddItemForm
-          fields={tab === "notes" ? NOTE_FIELDS : CURRENCY_FIELDS}
-          onSubmit={tab === "notes" ? addNote : addCurrency}
-          onClose={() => setShowAdd(false)}
-        />
+      {showAdd && tab === "notes" && (
+        <AddItemForm fields={NOTE_FIELDS} onSubmit={addNote} onClose={() => setShowAdd(false)} />
+      )}
+      {showAdd && tab === "currency" && (
+        <AddCurrencyForm onSubmit={addCurrency} onClose={() => setShowAdd(false)} />
       )}
     </main>
   );

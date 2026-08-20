@@ -42,7 +42,7 @@ export default function ItemCard({
 
   return (
     <div
-      className={`relative rounded-sm border-2 bg-[#faf6ec] shadow-[3px_3px_0_0_rgba(27,42,61,0.15)] transition-opacity ${
+      className={`relative rounded-sm border-2 bg-[#1e2530] shadow-[3px_3px_0_0_rgba(0,0,0,0.35)] transition-opacity ${
         collected ? "border-teal" : "border-ink/20"
       } ${collected ? "" : "opacity-90"}`}
     >

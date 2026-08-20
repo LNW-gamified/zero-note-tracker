@@ -5,12 +5,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#1B2A3D",
-        paper: "#F1E9D8",
-        paperDark: "#E4D9C0",
-        teal: "#2F6E6B",
-        stamp: "#B33A3A",
-        gold: "#C9A24B",
+        ink: "#ECE6D6",
+        paper: "#161B22",
+        paperDark: "#10141A",
+        teal: "#4FB9B3",
+        stamp: "#E2665F",
+        gold: "#D9B968",
       },
       fontFamily: {
         display: ["var(--font-fraunces)", "serif"],
@@ -19,7 +19,7 @@ const config: Config = {
       },
       backgroundImage: {
         "paper-texture":
-          "radial-gradient(circle at 1px 1px, rgba(27,42,61,0.06) 1px, transparent 0)",
+          "radial-gradient(circle at 1px 1px, rgba(236,230,214,0.05) 1px, transparent 0)",
       },
       backgroundSize: {
         grain: "18px 18px",
