@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { getFlagEmoji } from "@/lib/countryFlags";
 
 export type ItemCardProps = {
   serial: string;
@@ -9,6 +10,7 @@ export type ItemCardProps = {
   subtitle: string;
   meta?: string;
   notes?: string | null;
+  country?: string;
   photoUrl: string | null;
   collected: boolean;
   collectedDate: string | null;
@@ -24,6 +26,7 @@ export default function ItemCard({
   subtitle,
   meta,
   notes,
+  country,
   photoUrl,
   collected,
   collectedDate,
@@ -35,6 +38,7 @@ export default function ItemCard({
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const flag = getFlagEmoji(country);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -124,7 +128,14 @@ export default function ItemCard({
       <div className="guilloche-rule" />
 
       <div className="p-3">
-        <div className="serial mb-1 text-[10px] text-teal">{serial}</div>
+        <div className="mb-1 flex items-center justify-between">
+          <span className="serial text-[10px] text-teal">{serial}</span>
+          {flag && (
+            <span className="text-lg leading-none" title={country}>
+              {flag}
+            </span>
+          )}
+        </div>
         <h3 className="font-display text-base leading-snug text-ink">{title}</h3>
         <p className="text-sm text-ink/70">{subtitle}</p>
         {meta && <p className="text-xs text-ink/50">{meta}</p>}

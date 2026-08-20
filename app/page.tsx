@@ -377,6 +377,7 @@ export default function Home() {
                 subtitle={[n.city, n.country].filter(Boolean).join(", ")}
                 meta={[n.year, n.identification].filter(Boolean).join(" · ") || undefined}
                 notes={n.notes}
+                country={n.country}
                 photoUrl={n.photo_url}
                 collected={n.collected}
                 collectedDate={n.collected_date}
@@ -400,6 +401,7 @@ export default function Home() {
               subtitle={`${c.currency_name} · ${c.country}`}
               meta={[c.item_type, c.year].filter(Boolean).join(" · ")}
               notes={c.notes}
+              country={c.country}
               photoUrl={c.photo_url}
               collected={c.collected}
               collectedDate={c.collected_date}
