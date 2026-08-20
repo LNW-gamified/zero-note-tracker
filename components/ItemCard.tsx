@@ -93,7 +93,7 @@ export default function ItemCard({
         {photoUrl ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoUrl} alt={title} className="h-full w-full object-cover" />
+            <img src={photoUrl} alt={title} className="h-full w-full object-contain" />
             {uploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-ink/60 font-mono text-[10px] uppercase tracking-widest text-paper">
                 Uploading…
