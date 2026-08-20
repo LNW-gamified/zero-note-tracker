@@ -13,8 +13,8 @@ import { getFlagEmoji } from "@/lib/countryFlags";
 
 const NOTE_FIELDS: Field[] = [
   { name: "name", label: "Name", required: true, placeholder: "e.g. Atomium" },
-  { name: "country", label: "Country", required: true, placeholder: "e.g. Belgium" },
   { name: "city", label: "City / site", placeholder: "e.g. Brussels" },
+  { name: "country", label: "Country", required: true, placeholder: "e.g. Belgium" },
   { name: "year", label: "Year", type: "number", placeholder: "2017" },
   { name: "identification", label: "Identification", placeholder: "e.g. serial / catalog no." },
   { name: "notes", label: "Notes", type: "textarea", placeholder: "Freeform notes…" },
