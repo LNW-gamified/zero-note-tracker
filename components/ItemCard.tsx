@@ -110,7 +110,7 @@ export default function ItemCard({
 
       <div className="px-3 pb-3 pt-2">
         <div className="mb-1 flex items-center justify-between gap-2">
-          <h3 className="min-w-0 flex-1 truncate font-display text-base leading-snug text-ink">
+          <h3 className="min-w-0 flex-1 line-clamp-2 font-display text-base leading-snug text-ink">
             {title}
           </h3>
           {flag && (
