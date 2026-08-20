@@ -51,6 +51,7 @@ export default function Home() {
   const [editingCurrency, setEditingCurrency] = useState<CurrencyItem | null>(null);
   const [filter, setFilter] = useState<"all" | "collected" | "missing">("all");
   const [noteSort, setNoteSort] = useState<"date" | "country">("date");
+  const [currencySort, setCurrencySort] = useState<"country" | "date">("country");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -102,15 +103,24 @@ export default function Home() {
       filter === "all" ? true : filter === "collected" ? c.collected : !c.collected
     );
     const q = search.trim().toLowerCase();
-    if (!q) return byFilter;
-    return byFilter.filter((c) =>
-      [c.currency_name, c.country, c.denomination, c.item_type, c.notes]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(q)
+    const bySearch = q
+      ? byFilter.filter((c) =>
+          [c.currency_name, c.country, c.denomination, c.item_type, c.notes]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+            .includes(q)
+        )
+      : byFilter;
+    if (currencySort === "date") {
+      return [...bySearch].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    }
+    return [...bySearch].sort(
+      (a, b) => a.country.localeCompare(b.country) || a.denomination.localeCompare(b.denomination)
     );
-  }, [currency, filter, search]);
+  }, [currency, filter, search, currencySort]);
 
   async function toggleNote(n: ZeroNote) {
     const collected = !n.collected;
@@ -318,7 +328,7 @@ export default function Home() {
           />
         </div>
         <div className="flex items-center gap-2">
-          {tab === "notes" && (
+          {tab === "notes" ? (
             <select
               value={noteSort}
               onChange={(e) => setNoteSort(e.target.value as "date" | "country")}
@@ -326,6 +336,15 @@ export default function Home() {
             >
               <option value="date">Newest first</option>
               <option value="country">Sort by country</option>
+            </select>
+          ) : (
+            <select
+              value={currencySort}
+              onChange={(e) => setCurrencySort(e.target.value as "country" | "date")}
+              className="rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-widest text-ink/70"
+            >
+              <option value="country">Sort by country</option>
+              <option value="date">Newest first</option>
             </select>
           )}
           <button

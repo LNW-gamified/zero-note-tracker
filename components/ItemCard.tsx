@@ -33,6 +33,7 @@ export default function ItemCard({
 }: ItemCardProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -47,6 +48,15 @@ export default function ItemCard({
   }
 
   function handlePhotoClick() {
+    if (photoUrl) {
+      setLightboxOpen(true);
+      return;
+    }
+    fileInput.current?.click();
+  }
+
+  function handleReplaceClick(e: React.MouseEvent) {
+    e.stopPropagation();
     if (photoUrl && !window.confirm("Replace the existing photo? The old one can't be recovered.")) {
       return;
     }
@@ -76,12 +86,22 @@ export default function ItemCard({
         onClick={handlePhotoClick}
       >
         {photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={photoUrl}
-            alt={title}
-            className="h-full w-full object-cover"
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photoUrl} alt={title} className="h-full w-full object-cover" />
+            {uploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-ink/60 font-mono text-[10px] uppercase tracking-widest text-paper">
+                Uploading…
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleReplaceClick}
+              className="absolute bottom-1 right-1 rounded-sm border border-ink/30 bg-[#10141a]/85 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-ink/70 hover:border-ink/60 hover:text-ink"
+            >
+              Replace
+            </button>
+          </>
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-ink/40">
             <span className="text-2xl">+</span>
@@ -135,6 +155,28 @@ export default function ItemCard({
           </button>
         </div>
       </div>
+
+      {lightboxOpen && photoUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(false)}
+            className="absolute right-4 top-4 font-mono text-xs uppercase tracking-widest text-white/70 hover:text-white"
+          >
+            Close ✕
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photoUrl}
+            alt={title}
+            className="max-h-[90vh] max-w-[90vw] rounded-sm object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
