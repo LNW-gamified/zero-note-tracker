@@ -131,7 +131,7 @@ export default function ItemCard({
         <div className="mb-1 flex items-center justify-between">
           <span className="serial text-[10px] text-teal">{serial}</span>
           {flag && (
-            <span className="text-lg leading-none" title={country}>
+            <span className="text-3xl leading-none" title={country}>
               {flag}
             </span>
           )}
