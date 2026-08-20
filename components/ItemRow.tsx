@@ -89,10 +89,11 @@ export default function ItemRow({
           {subtitle}
           {meta ? ` · ${meta}` : ""}
         </p>
-        <p className="font-mono text-[9px] uppercase tracking-widest text-ink/30">
-          Added {formatShortDate(addedAt)}
-          {collected && collectedDate ? ` · Collected ${formatShortDate(collectedDate)}` : ""}
-        </p>
+        {collected && collectedDate && (
+          <p className="font-mono text-[9px] uppercase tracking-widest text-ink/30">
+            Collected {formatShortDate(collectedDate)}
+          </p>
+        )}
       </div>
 
       <div className="flex shrink-0 items-center gap-1 font-mono text-[9px] uppercase tracking-widest">

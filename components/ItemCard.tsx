@@ -119,9 +119,6 @@ export default function ItemCard({
             </span>
           )}
         </div>
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-ink/40">
-          Added {formatShortDate(addedAt)}
-        </p>
         {collected && collectedDate && (
           <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-teal/80">
             Collected {formatShortDate(collectedDate)}
