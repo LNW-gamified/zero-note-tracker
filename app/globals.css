@@ -59,3 +59,11 @@ body {
   font-family: var(--font-plex-mono);
   letter-spacing: 0.08em;
 }
+
+/* Traces a white outline around the flag emoji's own silhouette
+   (drop-shadow follows glyph alpha) instead of boxing it in a rect. */
+.flag-outline {
+  filter: drop-shadow(0 1px 0 #fff) drop-shadow(0 -1px 0 #fff) drop-shadow(1px 0 0 #fff)
+    drop-shadow(-1px 0 0 #fff) drop-shadow(1px 1px 0 #fff) drop-shadow(-1px -1px 0 #fff)
+    drop-shadow(1px -1px 0 #fff) drop-shadow(-1px 1px 0 #fff);
+}

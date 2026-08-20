@@ -114,11 +114,8 @@ export default function ItemCard({
             Added {formatShortDate(addedAt)}
           </span>
           {flag && (
-            <span
-              className="inline-flex rounded-sm border border-ink/30 bg-black/25 px-1.5 py-1"
-              title={country}
-            >
-              <span className="block text-5xl leading-none">{flag}</span>
+            <span className="flag-outline text-5xl leading-none" title={country}>
+              {flag}
             </span>
           )}
         </div>

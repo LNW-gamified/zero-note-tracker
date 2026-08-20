@@ -614,11 +614,7 @@ function GroupHeader({ country, count }: { country: string; count: number }) {
   const flag = getFlagEmoji(country);
   return (
     <div className="mb-2 flex items-center gap-2 border-b border-ink/10 pb-1">
-      {flag && (
-        <span className="inline-flex rounded-sm border border-ink/30 bg-black/25 px-1 py-0.5">
-          <span className="block text-2xl leading-none">{flag}</span>
-        </span>
-      )}
+      {flag && <span className="flag-outline text-2xl leading-none">{flag}</span>}
       <h2 className="font-display text-lg text-ink">{country}</h2>
       <span className="font-mono text-xs text-ink/40">{count}</span>
     </div>
