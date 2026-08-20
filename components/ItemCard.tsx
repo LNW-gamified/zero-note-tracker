@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export type ItemCardProps = {
   serial: string;
@@ -156,27 +157,30 @@ export default function ItemCard({
         </div>
       </div>
 
-      {lightboxOpen && photoUrl && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4"
-          onClick={() => setLightboxOpen(false)}
-        >
-          <button
-            type="button"
+      {lightboxOpen &&
+        photoUrl &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4"
             onClick={() => setLightboxOpen(false)}
-            className="absolute right-4 top-4 font-mono text-xs uppercase tracking-widest text-white/70 hover:text-white"
           >
-            Close ✕
-          </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={photoUrl}
-            alt={title}
-            className="max-h-[90vh] max-w-[90vw] rounded-sm object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+            <button
+              type="button"
+              onClick={() => setLightboxOpen(false)}
+              className="absolute right-4 top-4 font-mono text-xs uppercase tracking-widest text-white/70 hover:text-white"
+            >
+              Close ✕
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={photoUrl}
+              alt={title}
+              className="max-h-[90vh] max-w-[90vw] rounded-sm object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
