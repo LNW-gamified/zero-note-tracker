@@ -64,7 +64,7 @@ export default function Home() {
   const [showAdd, setShowAdd] = useState(false);
   const [editingNote, setEditingNote] = useState<ZeroNote | null>(null);
   const [editingCurrency, setEditingCurrency] = useState<CurrencyItem | null>(null);
-  const [filter, setFilter] = useState<"all" | "collected" | "missing">("all");
+  const [filter, setFilter] = useState<"all" | "collected" | "not collected">("all");
   const [noteSort, setNoteSort] = useState<"date" | "country">("date");
   const [currencySort, setCurrencySort] = useState<"country" | "date">("country");
   const [noteCountryFilter, setNoteCountryFilter] = useState<string>("");
@@ -376,7 +376,7 @@ export default function Home() {
       <div className="sticky top-0 z-30 -mx-4 my-4 flex flex-wrap items-center justify-between gap-2 bg-paper px-4 py-3 sm:-mx-8 sm:px-8">
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex gap-1 font-mono text-xs uppercase tracking-widest">
-            {(["all", "collected", "missing"] as const).map((f) => (
+            {(["all", "collected", "not collected"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
