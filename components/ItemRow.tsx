@@ -79,7 +79,7 @@ export default function ItemRow({
         <div className="flex items-baseline gap-2">
           <h3 className="truncate font-display text-sm leading-snug text-ink">{title}</h3>
           {collected && (
-            <span className="shrink-0 font-mono text-[9px] uppercase tracking-widest text-teal">
+            <span className="shrink-0 rounded-sm bg-teal px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-widest text-paper">
               Collected
             </span>
           )}

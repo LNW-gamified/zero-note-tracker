@@ -20,38 +20,38 @@ body {
   height: 3px;
 }
 
-/* The signature element: a rotated ink stamp that lands on a card the
-   moment it's marked collected. */
-.stamp {
+/* The signature element: a bold diagonal ribbon banner across the top-left
+   corner of the photo the moment it's marked collected. Clipped by the
+   photo container's overflow-hidden, so it always reads clean regardless
+   of what's in the underlying image. */
+.ribbon {
   position: absolute;
   top: 14px;
-  right: 14px;
-  border: 3px solid #e2665f;
-  color: #e2665f;
-  border-radius: 9999px;
-  padding: 6px 10px;
+  left: -38px;
+  width: 150px;
+  transform: rotate(-45deg);
+  background: linear-gradient(135deg, #2f6e6b 0%, #4fb9b3 100%);
+  color: #0d1117;
   font-family: var(--font-plex-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  transform: rotate(-9deg);
-  background: rgba(16, 20, 26, 0.85);
-  pointer-events: none;
-  animation: stamp-in 240ms ease-out;
+  text-align: center;
+  padding: 5px 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  z-index: 10;
+  animation: ribbon-in 260ms ease-out;
 }
 
-@keyframes stamp-in {
+@keyframes ribbon-in {
   0% {
     opacity: 0;
-    transform: rotate(-9deg) scale(1.6);
-  }
-  60% {
-    opacity: 1;
-    transform: rotate(-9deg) scale(0.92);
+    transform: rotate(-45deg) translateY(-22px);
   }
   100% {
     opacity: 1;
-    transform: rotate(-9deg) scale(1);
+    transform: rotate(-45deg) translateY(0);
   }
 }
 

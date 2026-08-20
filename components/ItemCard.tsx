@@ -67,22 +67,11 @@ export default function ItemCard({
         collected ? "border-teal" : "border-ink/20"
       } ${collected ? "" : "opacity-90"}`}
     >
-      {collected && (
-        <div className="stamp">
-          Collected
-          {collectedDate ? (
-            <>
-              <br />
-              {formatShortDate(collectedDate)}
-            </>
-          ) : null}
-        </div>
-      )}
-
       <div
         className="relative h-36 w-full cursor-pointer overflow-hidden bg-ink/5"
         onClick={handlePhotoClick}
       >
+        {collected && <div className="ribbon">Collected</div>}
         {photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photoUrl} alt={title} className="h-full w-full object-contain" />
