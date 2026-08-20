@@ -9,6 +9,7 @@ import ItemRow from "@/components/ItemRow";
 import Tabs from "@/components/Tabs";
 import AddItemForm, { Field } from "@/components/AddItemForm";
 import AddCurrencyForm, { CurrencyFormValues } from "@/components/AddCurrencyForm";
+import { getFlagEmoji } from "@/lib/countryFlags";
 
 const NOTE_FIELDS: Field[] = [
   { name: "name", label: "Name", required: true, placeholder: "e.g. Atomium" },
@@ -43,6 +44,19 @@ function currencyToFormValues(c: CurrencyItem): CurrencyFormValues {
 
 const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
 
+function groupByCountry<T extends { country: string }>(items: T[]): { country: string; items: T[] }[] {
+  const groups: { country: string; items: T[] }[] = [];
+  for (const item of items) {
+    const last = groups[groups.length - 1];
+    if (last && last.country === item.country) {
+      last.items.push(item);
+    } else {
+      groups.push({ country: item.country, items: [item] });
+    }
+  }
+  return groups;
+}
+
 export default function Home() {
   const [tab, setTab] = useState<"notes" | "currency">("notes");
   const [notes, setNotes] = useState<ZeroNote[]>([]);
@@ -54,7 +68,7 @@ export default function Home() {
   const [noteSort, setNoteSort] = useState<"date" | "country">("date");
   const [currencySort, setCurrencySort] = useState<"country" | "date">("country");
   const [search, setSearch] = useState("");
-  const [view, setView] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -294,6 +308,44 @@ export default function Home() {
   const noteCount = `${notes.filter((n) => n.collected).length}/${notes.length}`;
   const currencyCount = `${currency.filter((c) => c.collected).length}/${currency.length}`;
 
+  function noteCardProps(n: ZeroNote, hideFlag: boolean) {
+    return {
+      addedAt: n.created_at,
+      title: n.name,
+      subtitle: [n.city, n.country].filter(Boolean).join(", "),
+      meta: [n.year, n.identification].filter(Boolean).join(" · ") || undefined,
+      notes: n.notes,
+      country: n.country,
+      hideFlag,
+      photoUrl: n.photo_url,
+      collected: n.collected,
+      collectedDate: n.collected_date,
+      onToggle: () => toggleNote(n),
+      onPhotoSelected: (file: File) => uploadNotePhoto(n, file),
+      onEdit: () => setEditingNote(n),
+      onDelete: () => deleteNote(n),
+    };
+  }
+
+  function currencyCardProps(c: CurrencyItem, hideFlag: boolean) {
+    return {
+      addedAt: c.created_at,
+      title: c.denomination,
+      subtitle: `${c.currency_name} · ${c.country}`,
+      meta: [c.item_type, c.year].filter(Boolean).join(" · "),
+      notes: c.notes,
+      country: c.country,
+      hideFlag,
+      photoUrl: c.photo_url,
+      collected: c.collected,
+      collectedDate: c.collected_date,
+      onToggle: () => toggleCurrency(c),
+      onPhotoSelected: (file: File) => uploadCurrencyPhoto(c, file),
+      onEdit: () => setEditingCurrency(c),
+      onDelete: () => deleteCurrency(c),
+    };
+  }
+
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-4 pb-24 pt-8 sm:px-8">
       <header className="mb-6">
@@ -306,7 +358,7 @@ export default function Home() {
 
       <Tabs active={tab} onChange={setTab} counts={{ notes: noteCount, currency: currencyCount }} />
 
-      <div className="my-4 flex flex-wrap items-center justify-between gap-2">
+      <div className="sticky top-0 z-30 -mx-4 my-4 flex flex-wrap items-center justify-between gap-2 bg-paper px-4 py-3 sm:-mx-8 sm:px-8">
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex gap-1 font-mono text-xs uppercase tracking-widest">
             {(["all", "collected", "missing"] as const).map((f) => (
@@ -321,47 +373,64 @@ export default function Home() {
               </button>
             ))}
           </div>
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search…"
-            className="rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 text-sm text-ink/80 placeholder:text-ink/30"
-          />
+          <div className="relative">
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink/30"
+            >
+              <circle cx="8.5" cy="8.5" r="6" />
+              <path d="M13.5 13.5 18 18" strokeLinecap="round" />
+            </svg>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search…"
+              className="rounded-sm border border-ink/30 bg-[#1e2530] py-1 pl-7 pr-2 text-sm text-ink/80 placeholder:text-ink/30"
+            />
+          </div>
         </div>
         <div className="flex items-center gap-2">
+          <div className="flex gap-1 font-mono text-xs uppercase tracking-widest">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`rounded-sm border px-2 py-1 ${
+                viewMode === "grid" ? "border-ink bg-ink text-paper" : "border-ink/30 text-ink/60"
+              }`}
+            >
+              Grid
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`rounded-sm border px-2 py-1 ${
+                viewMode === "list" ? "border-ink bg-ink text-paper" : "border-ink/30 text-ink/60"
+              }`}
+            >
+              List
+            </button>
+          </div>
           {tab === "notes" ? (
             <select
               value={noteSort}
               onChange={(e) => setNoteSort(e.target.value as "date" | "country")}
-              className="rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-widest text-ink/70"
+              className="min-w-[104px] rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-wide text-ink/70"
             >
-              <option value="date">Newest first</option>
-              <option value="country">Sort by country</option>
+              <option value="date">Newest</option>
+              <option value="country">Country</option>
             </select>
           ) : (
             <select
               value={currencySort}
               onChange={(e) => setCurrencySort(e.target.value as "country" | "date")}
-              className="rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-widest text-ink/70"
+              className="min-w-[104px] rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-wide text-ink/70"
             >
-              <option value="country">Sort by country</option>
-              <option value="date">Newest first</option>
+              <option value="country">Country</option>
+              <option value="date">Newest</option>
             </select>
           )}
-          <div className="flex gap-1 font-mono text-xs uppercase tracking-widest">
-            {(["grid", "list"] as const).map((v) => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                className={`rounded-sm border px-2 py-1 ${
-                  view === v ? "border-ink bg-ink text-paper" : "border-ink/30 text-ink/60"
-                }`}
-              >
-                {v}
-              </button>
-            ))}
-          </div>
           <button
             onClick={() => setShowAdd(true)}
             className="rounded-sm border border-stamp bg-stamp px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-paper"
@@ -382,91 +451,73 @@ export default function Home() {
       ) : tab === "notes" ? (
         filteredNotes.length === 0 ? (
           <EmptyState label={search ? "No matches." : "No 0€ notes here yet. Add the first one."} />
-        ) : view === "grid" ? (
+        ) : noteSort === "country" ? (
+          <div className="flex flex-col">
+            {groupByCountry(filteredNotes).map((group) => (
+              <div key={group.country} className="mb-5">
+                <GroupHeader country={group.country} count={group.items.length} />
+                {viewMode === "grid" ? (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                    {group.items.map((n) => (
+                      <ItemCard key={n.id} {...noteCardProps(n, true)} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col">
+                    {group.items.map((n) => (
+                      <ItemRow key={n.id} {...noteCardProps(n, true)} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : viewMode === "grid" ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {filteredNotes.map((n) => (
-              <ItemCard
-                key={n.id}
-                title={n.name}
-                subtitle={[n.city, n.country].filter(Boolean).join(", ")}
-                meta={[n.year, n.identification].filter(Boolean).join(" · ") || undefined}
-                notes={n.notes}
-                country={n.country}
-                addedAt={n.created_at}
-                photoUrl={n.photo_url}
-                collected={n.collected}
-                collectedDate={n.collected_date}
-                onToggle={() => toggleNote(n)}
-                onPhotoSelected={(file) => uploadNotePhoto(n, file)}
-                onEdit={() => setEditingNote(n)}
-                onDelete={() => deleteNote(n)}
-              />
+              <ItemCard key={n.id} {...noteCardProps(n, false)} />
             ))}
           </div>
         ) : (
-          <div className="rounded-sm border border-ink/10">
+          <div className="flex flex-col">
             {filteredNotes.map((n) => (
-              <ItemRow
-                key={n.id}
-                title={n.name}
-                subtitle={[n.city, n.country].filter(Boolean).join(", ")}
-                meta={[n.year, n.identification].filter(Boolean).join(" · ") || undefined}
-                notes={n.notes}
-                country={n.country}
-                addedAt={n.created_at}
-                photoUrl={n.photo_url}
-                collected={n.collected}
-                collectedDate={n.collected_date}
-                onToggle={() => toggleNote(n)}
-                onPhotoSelected={(file) => uploadNotePhoto(n, file)}
-                onEdit={() => setEditingNote(n)}
-                onDelete={() => deleteNote(n)}
-              />
+              <ItemRow key={n.id} {...noteCardProps(n, false)} />
             ))}
           </div>
         )
       ) : filteredCurrency.length === 0 ? (
         <EmptyState label={search ? "No matches." : "No currency items here yet. Add the first one."} />
-      ) : view === "grid" ? (
+      ) : currencySort === "country" ? (
+        <div className="flex flex-col">
+          {groupByCountry(filteredCurrency).map((group) => (
+            <div key={group.country} className="mb-5">
+              <GroupHeader country={group.country} count={group.items.length} />
+              {viewMode === "grid" ? (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  {group.items.map((c) => (
+                    <ItemCard key={c.id} {...currencyCardProps(c, true)} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  {group.items.map((c) => (
+                    <ItemRow key={c.id} {...currencyCardProps(c, true)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : viewMode === "grid" ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {filteredCurrency.map((c) => (
-            <ItemCard
-              key={c.id}
-              title={c.denomination}
-              subtitle={`${c.currency_name} · ${c.country}`}
-              meta={[c.item_type, c.year].filter(Boolean).join(" · ")}
-              notes={c.notes}
-              country={c.country}
-              addedAt={c.created_at}
-              photoUrl={c.photo_url}
-              collected={c.collected}
-              collectedDate={c.collected_date}
-              onToggle={() => toggleCurrency(c)}
-              onPhotoSelected={(file) => uploadCurrencyPhoto(c, file)}
-              onEdit={() => setEditingCurrency(c)}
-              onDelete={() => deleteCurrency(c)}
-            />
+            <ItemCard key={c.id} {...currencyCardProps(c, false)} />
           ))}
         </div>
       ) : (
-        <div className="rounded-sm border border-ink/10">
+        <div className="flex flex-col">
           {filteredCurrency.map((c) => (
-            <ItemRow
-              key={c.id}
-              title={c.denomination}
-              subtitle={`${c.currency_name} · ${c.country}`}
-              meta={[c.item_type, c.year].filter(Boolean).join(" · ")}
-              notes={c.notes}
-              country={c.country}
-              addedAt={c.created_at}
-              photoUrl={c.photo_url}
-              collected={c.collected}
-              collectedDate={c.collected_date}
-              onToggle={() => toggleCurrency(c)}
-              onPhotoSelected={(file) => uploadCurrencyPhoto(c, file)}
-              onEdit={() => setEditingCurrency(c)}
-              onDelete={() => deleteCurrency(c)}
-            />
+            <ItemRow key={c.id} {...currencyCardProps(c, false)} />
           ))}
         </div>
       )}
@@ -513,6 +564,17 @@ function EmptyState({ label }: { label: string }) {
   return (
     <div className="rounded-sm border-2 border-dashed border-ink/20 py-16 text-center">
       <p className="font-display text-lg text-ink/50">{label}</p>
+    </div>
+  );
+}
+
+function GroupHeader({ country, count }: { country: string; count: number }) {
+  const flag = getFlagEmoji(country);
+  return (
+    <div className="mb-2 flex items-center gap-2 border-b border-ink/10 pb-1">
+      {flag && <span className="text-2xl leading-none">{flag}</span>}
+      <h2 className="font-display text-lg text-ink">{country}</h2>
+      <span className="font-mono text-xs text-ink/40">{count}</span>
     </div>
   );
 }
