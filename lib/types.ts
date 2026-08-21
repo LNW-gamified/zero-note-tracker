@@ -12,6 +12,19 @@ export type ZeroNote = {
   created_at: string;
 };
 
+export type Postcard = {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  year: number | null;
+  photo_url: string | null;
+  collected: boolean;
+  collected_date: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
 export type CurrencyItem = {
   id: string;
   currency_name: string;

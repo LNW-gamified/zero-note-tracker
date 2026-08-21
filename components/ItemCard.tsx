@@ -15,6 +15,7 @@ export type ItemCardProps = {
   photoUrl: string | null;
   collected: boolean;
   collectedDate: string | null;
+  verb?: string;
   onToggle: () => void;
   onPhotoSelected: (file: File) => Promise<void>;
   onEdit: () => void;
@@ -31,6 +32,7 @@ export default function ItemCard({
   photoUrl,
   collected,
   collectedDate,
+  verb = "Collected",
   onToggle,
   onPhotoSelected,
   onEdit,
@@ -71,7 +73,7 @@ export default function ItemCard({
         className="relative h-36 w-full cursor-pointer overflow-hidden bg-ink/5"
         onClick={handlePhotoClick}
       >
-        {collected && <div className="ribbon">Collected</div>}
+        {collected && <div className="ribbon">{verb}</div>}
         {photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photoUrl} alt={title} className="h-full w-full object-contain" />
@@ -111,7 +113,7 @@ export default function ItemCard({
         </div>
         {collected && collectedDate && (
           <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-teal/80">
-            Collected {formatShortDate(collectedDate)}
+            {verb} {formatShortDate(collectedDate)}
           </p>
         )}
         <p className="text-sm text-ink/70">{subtitle}</p>
@@ -126,7 +128,7 @@ export default function ItemCard({
               : "border-stamp text-stamp hover:bg-stamp hover:text-paper"
           }`}
         >
-          {collected ? "Mark not collected" : "Mark collected"}
+          {collected ? `Mark not ${verb.toLowerCase()}` : `Mark ${verb.toLowerCase()}`}
         </button>
 
         <div className="mt-2 flex gap-2 font-mono text-[10px] uppercase tracking-widest">

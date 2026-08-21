@@ -5,13 +5,14 @@ export default function Tabs({
   onChange,
   counts,
 }: {
-  active: "notes" | "currency";
-  onChange: (tab: "notes" | "currency") => void;
-  counts: { notes: string; currency: string };
+  active: "notes" | "currency" | "postcards";
+  onChange: (tab: "notes" | "currency" | "postcards") => void;
+  counts: { notes: string; currency: string; postcards: string };
 }) {
-  const tabs: { key: "notes" | "currency"; label: string }[] = [
+  const tabs: { key: "notes" | "currency" | "postcards"; label: string }[] = [
     { key: "notes", label: "0€ Notes" },
     { key: "currency", label: "Currency" },
+    { key: "postcards", label: "Postcards" },
   ];
 
   return (

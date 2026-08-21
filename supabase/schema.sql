@@ -32,6 +32,20 @@ create table if not exists currency_items (
   created_at timestamptz not null default now()
 );
 
+-- Postcards sent home from each city visited
+create table if not exists postcards (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  country text not null,
+  city text not null,
+  year int,
+  photo_url text,
+  collected boolean not null default false,
+  collected_date date,
+  notes text,
+  created_at timestamptz not null default now()
+);
+
 -- Storage bucket for photos (both catalogs use it)
 insert into storage.buckets (id, name, public)
 values ('catalog-photos', 'catalog-photos', true)
@@ -42,11 +56,15 @@ on conflict (id) do nothing;
 -- without adding real auth + per-row ownership checks.
 alter table zero_notes enable row level security;
 alter table currency_items enable row level security;
+alter table postcards enable row level security;
 
 create policy "anon full access to zero_notes" on zero_notes
   for all using (true) with check (true);
 
 create policy "anon full access to currency_items" on currency_items
+  for all using (true) with check (true);
+
+create policy "anon full access to postcards" on postcards
   for all using (true) with check (true);
 
 create policy "anon read/write catalog-photos" on storage.objects

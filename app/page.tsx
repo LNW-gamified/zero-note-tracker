@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadPhoto, deletePhoto } from "@/lib/storage";
 import { todayLocalISODate } from "@/lib/formatDate";
-import { ZeroNote, CurrencyItem } from "@/lib/types";
+import { ZeroNote, CurrencyItem, Postcard } from "@/lib/types";
 import ItemCard from "@/components/ItemCard";
 import ItemRow from "@/components/ItemRow";
 import Tabs from "@/components/Tabs";
@@ -29,6 +29,24 @@ function noteToFormValues(n: ZeroNote): Record<string, string> {
     year: n.year ? String(n.year) : "",
     identification: n.identification ?? "",
     notes: n.notes ?? "",
+  };
+}
+
+const POSTCARD_FIELDS: Field[] = [
+  { name: "name", label: "Title", required: true, placeholder: "e.g. Eiffel Tower" },
+  { name: "city", label: "City", required: true, placeholder: "e.g. Paris" },
+  { name: "country", label: "Country", required: true, placeholder: "e.g. France" },
+  { name: "year", label: "Year", type: "number", placeholder: "2026" },
+  { name: "notes", label: "Notes", type: "textarea", placeholder: "Freeform notes…" },
+];
+
+function postcardToFormValues(p: Postcard): Record<string, string> {
+  return {
+    name: p.name,
+    country: p.country,
+    city: p.city,
+    year: p.year ? String(p.year) : "",
+    notes: p.notes ?? "",
   };
 }
 
@@ -68,17 +86,21 @@ function groupByCountry<T extends { country: string }>(items: T[]): { country: s
 }
 
 export default function Home() {
-  const [tab, setTab] = useState<"notes" | "currency">("notes");
+  const [tab, setTab] = useState<"notes" | "currency" | "postcards">("notes");
   const [notes, setNotes] = useState<ZeroNote[]>([]);
   const [currency, setCurrency] = useState<CurrencyItem[]>([]);
+  const [postcards, setPostcards] = useState<Postcard[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [editingNote, setEditingNote] = useState<ZeroNote | null>(null);
   const [editingCurrency, setEditingCurrency] = useState<CurrencyItem | null>(null);
+  const [editingPostcard, setEditingPostcard] = useState<Postcard | null>(null);
   const [filter, setFilter] = useState<"all" | "collected" | "not collected">("not collected");
   const [noteSort, setNoteSort] = useState<"date" | "country">("country");
   const [currencySort, setCurrencySort] = useState<"country" | "date">("country");
+  const [postcardSort, setPostcardSort] = useState<"date" | "country">("country");
   const [noteCountryFilter, setNoteCountryFilter] = useState<string>("");
   const [currencyCountryFilter, setCurrencyCountryFilter] = useState<string>("");
+  const [postcardCountryFilter, setPostcardCountryFilter] = useState<string>("");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
@@ -86,14 +108,17 @@ export default function Home() {
 
   async function loadAll() {
     setLoading(true);
-    const [notesRes, currencyRes] = await Promise.all([
+    const [notesRes, currencyRes, postcardsRes] = await Promise.all([
       supabase.from("zero_notes").select("*").order("created_at", { ascending: false }),
       supabase.from("currency_items").select("*").order("country").order("item_type").order("denomination"),
+      supabase.from("postcards").select("*").order("created_at", { ascending: false }),
     ]);
     if (notesRes.error) setError(notesRes.error.message);
     if (currencyRes.error) setError(currencyRes.error.message);
+    if (postcardsRes.error) setError(postcardsRes.error.message);
     setNotes((notesRes.data as ZeroNote[]) ?? []);
     setCurrency((currencyRes.data as CurrencyItem[]) ?? []);
+    setPostcards((postcardsRes.data as Postcard[]) ?? []);
     setLoading(false);
   }
 
@@ -113,6 +138,10 @@ export default function Home() {
   const currencyCountries = useMemo(
     () => Array.from(new Set(currency.map((c) => c.country))).sort(),
     [currency]
+  );
+  const postcardCountries = useMemo(
+    () => Array.from(new Set(postcards.map((p) => p.country))).sort(),
+    [postcards]
   );
 
   const filteredNotes = useMemo(() => {
@@ -167,6 +196,31 @@ export default function Home() {
     );
   }, [currency, filter, search, currencySort, currencyCountryFilter]);
 
+  const filteredPostcards = useMemo(() => {
+    const byFilter = postcards.filter((p) =>
+      filter === "all" ? true : filter === "collected" ? p.collected : !p.collected
+    );
+    const byCountry = postcardCountryFilter
+      ? byFilter.filter((p) => p.country === postcardCountryFilter)
+      : byFilter;
+    const q = search.trim().toLowerCase();
+    const bySearch = q
+      ? byCountry.filter((p) =>
+          [p.name, p.country, p.city, p.notes]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+            .includes(q)
+        )
+      : byCountry;
+    if (postcardSort === "country") {
+      return [...bySearch].sort(
+        (a, b) => a.country.localeCompare(b.country) || a.name.localeCompare(b.name)
+      );
+    }
+    return bySearch;
+  }, [postcards, filter, postcardSort, search, postcardCountryFilter]);
+
   async function toggleNote(n: ZeroNote) {
     const collected = !n.collected;
     const { error } = await supabase
@@ -193,6 +247,19 @@ export default function Home() {
     loadAll();
   }
 
+  async function togglePostcard(p: Postcard) {
+    const collected = !p.collected;
+    const { error } = await supabase
+      .from("postcards")
+      .update({
+        collected,
+        collected_date: collected ? todayLocalISODate() : null,
+      })
+      .eq("id", p.id);
+    if (error) return setError(error.message);
+    loadAll();
+  }
+
   async function uploadNotePhoto(n: ZeroNote, file: File) {
     const url = await uploadPhoto(file, "zero-notes");
     const { error } = await supabase.from("zero_notes").update({ photo_url: url }).eq("id", n.id);
@@ -209,6 +276,14 @@ export default function Home() {
     loadAll();
   }
 
+  async function uploadPostcardPhoto(p: Postcard, file: File) {
+    const url = await uploadPhoto(file, "postcards");
+    const { error } = await supabase.from("postcards").update({ photo_url: url }).eq("id", p.id);
+    if (error) return setError(error.message);
+    if (p.photo_url) deletePhoto(p.photo_url).catch(() => {});
+    loadAll();
+  }
+
   function isDuplicateNote(candidate: { name: string; country: string; city: string | null }, excludeId?: string) {
     return notes.some(
       (n) =>
@@ -216,6 +291,19 @@ export default function Home() {
         norm(n.name) === norm(candidate.name) &&
         norm(n.country) === norm(candidate.country) &&
         norm(n.city) === norm(candidate.city)
+    );
+  }
+
+  function isDuplicatePostcard(
+    candidate: { name: string; country: string; city: string },
+    excludeId?: string
+  ) {
+    return postcards.some(
+      (p) =>
+        p.id !== excludeId &&
+        norm(p.name) === norm(candidate.name) &&
+        norm(p.country) === norm(candidate.country) &&
+        norm(p.city) === norm(candidate.city)
     );
   }
 
@@ -284,6 +372,56 @@ export default function Home() {
     loadAll();
   }
 
+  async function addPostcard(values: Record<string, string>) {
+    const candidate = { name: values.name, country: values.country, city: values.city };
+    if (
+      isDuplicatePostcard(candidate) &&
+      !window.confirm("An entry with this title/country/city already exists. Add it anyway?")
+    ) {
+      return;
+    }
+    const { error } = await supabase.from("postcards").insert({
+      name: values.name,
+      country: values.country,
+      city: values.city,
+      year: values.year ? Number(values.year) : null,
+      notes: values.notes || null,
+    });
+    if (error) return setError(error.message);
+    loadAll();
+  }
+
+  async function updatePostcard(original: Postcard, values: Record<string, string>) {
+    const candidate = { name: values.name, country: values.country, city: values.city };
+    if (
+      isDuplicatePostcard(candidate, original.id) &&
+      !window.confirm("Another entry with this title/country/city already exists. Save anyway?")
+    ) {
+      return;
+    }
+    const { error } = await supabase
+      .from("postcards")
+      .update({
+        name: values.name,
+        country: values.country,
+        city: values.city,
+        year: values.year ? Number(values.year) : null,
+        notes: values.notes || null,
+      })
+      .eq("id", original.id);
+    if (error) return setError(error.message);
+    setEditingPostcard(null);
+    loadAll();
+  }
+
+  async function deletePostcard(p: Postcard) {
+    if (!window.confirm(`Delete "${p.name}"? This can't be undone.`)) return;
+    const { error } = await supabase.from("postcards").delete().eq("id", p.id);
+    if (error) return setError(error.message);
+    if (p.photo_url) deletePhoto(p.photo_url).catch(() => {});
+    loadAll();
+  }
+
   async function addCurrency(values: CurrencyFormValues) {
     if (
       isDuplicateCurrency(values) &&
@@ -336,6 +474,7 @@ export default function Home() {
 
   const noteCount = `${notes.filter((n) => n.collected).length}/${notes.length}`;
   const currencyCount = `${currency.filter((c) => c.collected).length}/${currency.length}`;
+  const postcardCount = `${postcards.filter((p) => p.collected).length}/${postcards.length}`;
 
   function noteCardProps(n: ZeroNote) {
     return {
@@ -373,6 +512,25 @@ export default function Home() {
     };
   }
 
+  function postcardCardProps(p: Postcard) {
+    return {
+      addedAt: p.created_at,
+      title: p.name,
+      subtitle: [p.city, p.country].filter(Boolean).join(", "),
+      meta: p.year ? String(p.year) : undefined,
+      notes: p.notes,
+      country: p.country,
+      photoUrl: p.photo_url,
+      collected: p.collected,
+      collectedDate: p.collected_date,
+      verb: "Sent",
+      onToggle: () => togglePostcard(p),
+      onPhotoSelected: (file: File) => uploadPostcardPhoto(p, file),
+      onEdit: () => setEditingPostcard(p),
+      onDelete: () => deletePostcard(p),
+    };
+  }
+
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-4 pb-24 pt-8 sm:px-8">
       <header className="mb-6">
@@ -383,7 +541,11 @@ export default function Home() {
         </p>
       </header>
 
-      <Tabs active={tab} onChange={setTab} counts={{ notes: noteCount, currency: currencyCount }} />
+      <Tabs
+        active={tab}
+        onChange={setTab}
+        counts={{ notes: noteCount, currency: currencyCount, postcards: postcardCount }}
+      />
 
       <div className="sticky top-0 z-30 -mx-4 my-4 flex flex-wrap items-center justify-between gap-2 bg-paper px-4 py-3 sm:-mx-8 sm:px-8">
         <div className="flex flex-wrap items-center gap-2">
@@ -432,7 +594,7 @@ export default function Home() {
                 </option>
               ))}
             </select>
-          ) : (
+          ) : tab === "currency" ? (
             <select
               value={currencyCountryFilter}
               onChange={(e) => setCurrencyCountryFilter(e.target.value)}
@@ -440,6 +602,19 @@ export default function Home() {
             >
               <option value="">All countries</option>
               {currencyCountries.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <select
+              value={postcardCountryFilter}
+              onChange={(e) => setPostcardCountryFilter(e.target.value)}
+              className="min-w-[130px] rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-wide text-ink/70"
+            >
+              <option value="">All countries</option>
+              {postcardCountries.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
@@ -475,10 +650,19 @@ export default function Home() {
               <option value="country">Country</option>
               <option value="date">Newest</option>
             </select>
-          ) : (
+          ) : tab === "currency" ? (
             <select
               value={currencySort}
               onChange={(e) => setCurrencySort(e.target.value as "country" | "date")}
+              className="min-w-[104px] rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-wide text-ink/70"
+            >
+              <option value="country">Country</option>
+              <option value="date">Newest</option>
+            </select>
+          ) : (
+            <select
+              value={postcardSort}
+              onChange={(e) => setPostcardSort(e.target.value as "date" | "country")}
               className="min-w-[104px] rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-wide text-ink/70"
             >
               <option value="country">Country</option>
@@ -539,23 +723,60 @@ export default function Home() {
             ))}
           </div>
         )
-      ) : filteredCurrency.length === 0 ? (
-        <EmptyState label={search ? "No matches." : "No currency items here yet. Add the first one."} />
-      ) : currencySort === "country" ? (
+      ) : tab === "currency" ? (
+        filteredCurrency.length === 0 ? (
+          <EmptyState label={search ? "No matches." : "No currency items here yet. Add the first one."} />
+        ) : currencySort === "country" ? (
+          <div className="flex flex-col">
+            {groupByCountry(filteredCurrency).map((group) => (
+              <div key={group.country} className="mb-5">
+                <GroupHeader country={group.country} count={group.items.length} />
+                {viewMode === "grid" ? (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                    {group.items.map((c) => (
+                      <ItemCard key={c.id} {...currencyCardProps(c)} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col">
+                    {group.items.map((c) => (
+                      <ItemRow key={c.id} {...currencyCardProps(c)} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : viewMode === "grid" ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {filteredCurrency.map((c) => (
+              <ItemCard key={c.id} {...currencyCardProps(c)} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col">
+            {filteredCurrency.map((c) => (
+              <ItemRow key={c.id} {...currencyCardProps(c)} />
+            ))}
+          </div>
+        )
+      ) : filteredPostcards.length === 0 ? (
+        <EmptyState label={search ? "No matches." : "No postcards here yet. Add the first one."} />
+      ) : postcardSort === "country" ? (
         <div className="flex flex-col">
-          {groupByCountry(filteredCurrency).map((group) => (
+          {groupByCountry(filteredPostcards).map((group) => (
             <div key={group.country} className="mb-5">
               <GroupHeader country={group.country} count={group.items.length} />
               {viewMode === "grid" ? (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {group.items.map((c) => (
-                    <ItemCard key={c.id} {...currencyCardProps(c)} />
+                  {group.items.map((p) => (
+                    <ItemCard key={p.id} {...postcardCardProps(p)} />
                   ))}
                 </div>
               ) : (
                 <div className="flex flex-col">
-                  {group.items.map((c) => (
-                    <ItemRow key={c.id} {...currencyCardProps(c)} />
+                  {group.items.map((p) => (
+                    <ItemRow key={p.id} {...postcardCardProps(p)} />
                   ))}
                 </div>
               )}
@@ -564,14 +785,14 @@ export default function Home() {
         </div>
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {filteredCurrency.map((c) => (
-            <ItemCard key={c.id} {...currencyCardProps(c)} />
+          {filteredPostcards.map((p) => (
+            <ItemCard key={p.id} {...postcardCardProps(p)} />
           ))}
         </div>
       ) : (
         <div className="flex flex-col">
-          {filteredCurrency.map((c) => (
-            <ItemRow key={c.id} {...currencyCardProps(c)} />
+          {filteredPostcards.map((p) => (
+            <ItemRow key={p.id} {...postcardCardProps(p)} />
           ))}
         </div>
       )}
@@ -608,6 +829,21 @@ export default function Home() {
           submitLabel="Save"
           photoUrl={editingCurrency.photo_url}
           onPhotoSelected={(file) => uploadCurrencyPhoto(editingCurrency, file)}
+        />
+      )}
+      {showAdd && tab === "postcards" && (
+        <AddItemForm fields={POSTCARD_FIELDS} onSubmit={addPostcard} onClose={() => setShowAdd(false)} />
+      )}
+      {editingPostcard && (
+        <AddItemForm
+          fields={POSTCARD_FIELDS}
+          initialValues={postcardToFormValues(editingPostcard)}
+          heading="Edit entry"
+          submitLabel="Save"
+          photoUrl={editingPostcard.photo_url}
+          onPhotoSelected={(file) => uploadPostcardPhoto(editingPostcard, file)}
+          onSubmit={(v) => updatePostcard(editingPostcard, v)}
+          onClose={() => setEditingPostcard(null)}
         />
       )}
     </main>

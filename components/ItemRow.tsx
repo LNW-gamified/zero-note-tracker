@@ -15,6 +15,7 @@ export default function ItemRow({
   photoUrl,
   collected,
   collectedDate,
+  verb = "Collected",
   onToggle,
   onPhotoSelected,
   onEdit,
@@ -82,7 +83,7 @@ export default function ItemRow({
           </h3>
           {collected && (
             <span className="shrink-0 rounded-sm bg-teal px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-widest text-paper">
-              Collected
+              {verb}
             </span>
           )}
         </div>
@@ -92,7 +93,7 @@ export default function ItemRow({
         </p>
         {collected && collectedDate && (
           <p className="font-mono text-[9px] uppercase tracking-widest text-ink/30">
-            Collected {formatShortDate(collectedDate)}
+            {verb} {formatShortDate(collectedDate)}
           </p>
         )}
       </div>
@@ -106,7 +107,7 @@ export default function ItemRow({
               : "border-stamp text-stamp hover:bg-stamp hover:text-paper"
           }`}
         >
-          {collected ? "Undo" : "Got it"}
+          {collected ? "Undo" : verb === "Collected" ? "Got it" : verb}
         </button>
         <button
           onClick={onEdit}
