@@ -73,11 +73,13 @@ export default function ItemRow({
         />
       </div>
 
-      {flag && <span className="flag-outline shrink-0 text-2xl leading-none">{flag}</span>}
+      {flag && <span className="flag-outline shrink-0 text-xl leading-none">{flag}</span>}
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
-          <h3 className="truncate font-display text-sm leading-snug text-ink">{title}</h3>
+          <h3 className="min-w-0 flex-1 truncate font-display text-sm leading-snug text-ink">
+            {title}
+          </h3>
           {collected && (
             <span className="shrink-0 rounded-sm bg-teal px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-widest text-paper">
               Collected
