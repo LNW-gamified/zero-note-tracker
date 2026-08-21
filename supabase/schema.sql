@@ -32,16 +32,20 @@ create table if not exists currency_items (
   created_at timestamptz not null default now()
 );
 
--- Postcards sent home from each city visited
+-- Postcards sent home from each city visited. Status moves through
+-- not_sent -> sent -> received rather than a single collected flag.
 create table if not exists postcards (
   id uuid primary key default uuid_generate_v4(),
   name text not null,
   country text not null,
   city text not null,
   year int,
+  sent_from text,
+  address text,
   photo_url text,
-  collected boolean not null default false,
-  collected_date date,
+  status text not null default 'not_sent' check (status in ('not_sent', 'sent', 'received')),
+  sent_date date,
+  received_date date,
   notes text,
   created_at timestamptz not null default now()
 );
@@ -67,6 +71,7 @@ create table if not exists food_items (
   restaurant text not null,
   country text not null,
   city text,
+  address text,
   photo_url text,
   collected boolean not null default false,
   collected_date date,

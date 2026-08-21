@@ -5,8 +5,9 @@ import { createPortal } from "react-dom";
 import { getFlagEmoji } from "@/lib/countryFlags";
 import { formatShortDate } from "@/lib/formatDate";
 import LocationMap from "@/components/LocationMap";
+import type { PostcardStatus } from "@/lib/types";
 
-export type ItemCardProps = {
+export type PostcardCardProps = {
   addedAt: string;
   title: string;
   subtitle: string;
@@ -15,17 +16,19 @@ export type ItemCardProps = {
   country?: string;
   address?: string | null;
   photoUrl: string | null;
-  collected: boolean;
-  collectedDate: string | null;
-  verb?: string;
-  onToggle: () => void;
+  status: PostcardStatus;
+  sentDate: string | null;
+  receivedDate: string | null;
+  onMarkSent: () => void;
+  onMarkReceived: () => void;
+  onMarkNotSent: () => void;
+  onMarkNotReceived: () => void;
   onPhotoSelected: (file: File) => Promise<void>;
   onEdit: () => void;
   onDelete: () => void;
 };
 
-export default function ItemCard({
-  addedAt,
+export default function PostcardCard({
   title,
   subtitle,
   meta,
@@ -33,14 +36,17 @@ export default function ItemCard({
   country,
   address,
   photoUrl,
-  collected,
-  collectedDate,
-  verb = "Collected",
-  onToggle,
+  status,
+  sentDate,
+  receivedDate,
+  onMarkSent,
+  onMarkReceived,
+  onMarkNotSent,
+  onMarkNotReceived,
   onPhotoSelected,
   onEdit,
   onDelete,
-}: ItemCardProps) {
+}: PostcardCardProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -66,17 +72,24 @@ export default function ItemCard({
     fileInput.current?.click();
   }
 
+  const borderClass =
+    status === "received" ? "border-teal" : status === "sent" ? "border-gold" : "border-ink/20";
+
   return (
     <div
-      className={`relative rounded-sm border-2 bg-[#1e2530] shadow-[3px_3px_0_0_rgba(0,0,0,0.35)] transition-opacity ${
-        collected ? "border-teal" : "border-ink/20"
-      } ${collected ? "" : "opacity-90"}`}
+      className={`relative rounded-sm border-2 bg-[#1e2530] shadow-[3px_3px_0_0_rgba(0,0,0,0.35)] transition-opacity ${borderClass} ${
+        status === "not_sent" ? "opacity-90" : ""
+      }`}
     >
       <div
         className="relative h-36 w-full cursor-pointer overflow-hidden bg-ink/5"
         onClick={handlePhotoClick}
       >
-        {collected && <div className="ribbon">{verb}</div>}
+        {status !== "not_sent" && (
+          <div className={`ribbon ${status === "sent" ? "ribbon-sent" : ""}`}>
+            {status === "sent" ? "Sent" : "Received"}
+          </div>
+        )}
         {photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photoUrl} alt={title} className="h-full w-full object-contain" />
@@ -114,9 +127,14 @@ export default function ItemCard({
             </span>
           )}
         </div>
-        {collected && collectedDate && (
+        {sentDate && (
+          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-gold/90">
+            Sent {formatShortDate(sentDate)}
+          </p>
+        )}
+        {receivedDate && (
           <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-teal/80">
-            {verb} {formatShortDate(collectedDate)}
+            Received {formatShortDate(receivedDate)}
           </p>
         )}
         <p className="text-sm text-ink/70">{subtitle}</p>
@@ -124,16 +142,36 @@ export default function ItemCard({
         {notes && <p className="mt-1 text-xs italic text-ink/40">{notes}</p>}
         {address && <LocationMap address={address} />}
 
-        <button
-          onClick={onToggle}
-          className={`mt-3 w-full rounded-sm border px-3 py-1.5 font-mono text-xs uppercase tracking-widest transition-colors ${
-            collected
-              ? "border-teal text-teal hover:bg-teal hover:text-paper"
-              : "border-stamp text-stamp hover:bg-stamp hover:text-paper"
-          }`}
-        >
-          {collected ? `Mark not ${verb.toLowerCase()}` : `Mark ${verb.toLowerCase()}`}
-        </button>
+        {status === "not_sent" ? (
+          <button
+            onClick={onMarkSent}
+            className="mt-3 w-full rounded-sm border border-stamp px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-stamp transition-colors hover:bg-stamp hover:text-paper"
+          >
+            Mark sent
+          </button>
+        ) : status === "sent" ? (
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={onMarkReceived}
+              className="flex-1 rounded-sm border border-teal px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-teal transition-colors hover:bg-teal hover:text-paper"
+            >
+              Mark received
+            </button>
+            <button
+              onClick={onMarkNotSent}
+              className="flex-1 rounded-sm border border-ink/30 px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-ink/60 transition-colors hover:border-ink/50 hover:text-ink"
+            >
+              Mark not sent
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onMarkNotReceived}
+            className="mt-3 w-full rounded-sm border border-ink/30 px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-ink/60 transition-colors hover:border-ink/50 hover:text-ink"
+          >
+            Mark not received
+          </button>
+        )}
 
         <div className="mt-2 flex gap-2 font-mono text-[10px] uppercase tracking-widest">
           <button

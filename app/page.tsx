@@ -4,9 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadPhoto, deletePhoto } from "@/lib/storage";
 import { todayLocalISODate } from "@/lib/formatDate";
-import { ZeroNote, CurrencyItem, Postcard, Souvenir, FoodItem } from "@/lib/types";
+import { ZeroNote, CurrencyItem, Postcard, PostcardStatus, Souvenir, FoodItem } from "@/lib/types";
 import ItemCard from "@/components/ItemCard";
 import ItemRow from "@/components/ItemRow";
+import PostcardCard from "@/components/PostcardCard";
+import PostcardRow from "@/components/PostcardRow";
 import Tabs, { TabKey } from "@/components/Tabs";
 import AddItemForm, { Field } from "@/components/AddItemForm";
 import AddCurrencyForm, { CurrencyFormValues } from "@/components/AddCurrencyForm";
@@ -34,6 +36,8 @@ function noteToFormValues(n: ZeroNote): Record<string, string> {
 
 const POSTCARD_FIELDS: Field[] = [
   { name: "name", label: "Title", required: true, placeholder: "e.g. Eiffel Tower" },
+  { name: "sent_from", label: "Sent from", placeholder: "e.g. The Louvre, a corner bookstore" },
+  { name: "address", label: "Address", placeholder: "e.g. Rue de Rivoli, 75001 Paris" },
   { name: "city", label: "City", required: true, placeholder: "e.g. Paris" },
   { name: "country", label: "Country", required: true, placeholder: "e.g. France" },
   { name: "year", label: "Year", type: "number", placeholder: "2026" },
@@ -45,6 +49,8 @@ function postcardToFormValues(p: Postcard): Record<string, string> {
     name: p.name,
     country: p.country,
     city: p.city,
+    sent_from: p.sent_from ?? "",
+    address: p.address ?? "",
     year: p.year ? String(p.year) : "",
     notes: p.notes ?? "",
   };
@@ -71,6 +77,7 @@ function souvenirToFormValues(s: Souvenir): Record<string, string> {
 const FOOD_FIELDS: Field[] = [
   { name: "name", label: "Dish", required: true, placeholder: "e.g. Pastel de nata" },
   { name: "restaurant", label: "Restaurant", required: true, placeholder: "e.g. Manteigaria" },
+  { name: "address", label: "Address", placeholder: "e.g. Rua do Loreto 2, Lisbon" },
   { name: "city", label: "City", placeholder: "e.g. Lisbon" },
   { name: "country", label: "Country", required: true, placeholder: "e.g. Portugal" },
   { name: "notes", label: "Notes", type: "textarea", placeholder: "Freeform notes…" },
@@ -82,6 +89,7 @@ function foodToFormValues(f: FoodItem): Record<string, string> {
     restaurant: f.restaurant,
     country: f.country,
     city: f.city ?? "",
+    address: f.address ?? "",
     notes: f.notes ?? "",
   };
 }
@@ -143,6 +151,7 @@ export default function Home() {
   const [editingSouvenir, setEditingSouvenir] = useState<Souvenir | null>(null);
   const [editingFood, setEditingFood] = useState<FoodItem | null>(null);
   const [filter, setFilter] = useState<"all" | "collected" | "not collected">("not collected");
+  const [postcardStatusFilter, setPostcardStatusFilter] = useState<"all" | PostcardStatus>("not_sent");
   const [noteSort, setNoteSort] = useState<"date" | "country">("country");
   const [currencySort, setCurrencySort] = useState<"country" | "date">("country");
   const [postcardSort, setPostcardSort] = useState<"date" | "country">("country");
@@ -264,7 +273,7 @@ export default function Home() {
 
   const filteredPostcards = useMemo(() => {
     const byFilter = postcards.filter((p) =>
-      filter === "all" ? true : filter === "collected" ? p.collected : !p.collected
+      postcardStatusFilter === "all" ? true : p.status === postcardStatusFilter
     );
     const byCountry = postcardCountryFilter
       ? byFilter.filter((p) => p.country === postcardCountryFilter)
@@ -272,7 +281,7 @@ export default function Home() {
     const q = search.trim().toLowerCase();
     const bySearch = q
       ? byCountry.filter((p) =>
-          [p.name, p.country, p.city, p.notes]
+          [p.name, p.country, p.city, p.sent_from, p.address, p.notes]
             .filter(Boolean)
             .join(" ")
             .toLowerCase()
@@ -285,7 +294,7 @@ export default function Home() {
       );
     }
     return bySearch;
-  }, [postcards, filter, postcardSort, search, postcardCountryFilter]);
+  }, [postcards, postcardStatusFilter, postcardSort, search, postcardCountryFilter]);
 
   const filteredSouvenirs = useMemo(() => {
     const byFilter = souvenirs.filter((s) =>
@@ -366,15 +375,14 @@ export default function Home() {
     loadAll();
   }
 
-  async function togglePostcard(p: Postcard) {
-    const collected = !p.collected;
-    const { error } = await supabase
-      .from("postcards")
-      .update({
-        collected,
-        collected_date: collected ? todayLocalISODate() : null,
-      })
-      .eq("id", p.id);
+  async function setPostcardStatus(p: Postcard, status: PostcardStatus) {
+    const updates: { status: PostcardStatus; sent_date: string | null; received_date: string | null } =
+      status === "not_sent"
+        ? { status, sent_date: null, received_date: null }
+        : status === "sent"
+          ? { status, sent_date: p.sent_date ?? todayLocalISODate(), received_date: null }
+          : { status, sent_date: p.sent_date ?? todayLocalISODate(), received_date: todayLocalISODate() };
+    const { error } = await supabase.from("postcards").update(updates).eq("id", p.id);
     if (error) return setError(error.message);
     loadAll();
   }
@@ -571,6 +579,8 @@ export default function Home() {
       name: values.name,
       country: values.country,
       city: values.city,
+      sent_from: values.sent_from || null,
+      address: values.address || null,
       year: values.year ? Number(values.year) : null,
       notes: values.notes || null,
     });
@@ -592,6 +602,8 @@ export default function Home() {
         name: values.name,
         country: values.country,
         city: values.city,
+        sent_from: values.sent_from || null,
+        address: values.address || null,
         year: values.year ? Number(values.year) : null,
         notes: values.notes || null,
       })
@@ -672,6 +684,7 @@ export default function Home() {
       restaurant: values.restaurant,
       country: values.country,
       city: values.city || null,
+      address: values.address || null,
       notes: values.notes || null,
     });
     if (error) return setError(error.message);
@@ -693,6 +706,7 @@ export default function Home() {
         restaurant: values.restaurant,
         country: values.country,
         city: values.city || null,
+        address: values.address || null,
         notes: values.notes || null,
       })
       .eq("id", original.id);
@@ -761,7 +775,7 @@ export default function Home() {
 
   const noteCount = `${notes.filter((n) => n.collected).length}/${notes.length}`;
   const currencyCount = `${currency.filter((c) => c.collected).length}/${currency.length}`;
-  const postcardCount = `${postcards.filter((p) => p.collected).length}/${postcards.length}`;
+  const postcardCount = `${postcards.filter((p) => p.status === "received").length}/${postcards.length}`;
   const souvenirCount = `${souvenirs.filter((s) => s.collected).length}/${souvenirs.length}`;
   const foodCount = `${food.filter((f) => f.collected).length}/${food.length}`;
 
@@ -805,15 +819,19 @@ export default function Home() {
     return {
       addedAt: p.created_at,
       title: p.name,
-      subtitle: [p.city, p.country].filter(Boolean).join(", "),
+      subtitle: [p.sent_from, p.city, p.country].filter(Boolean).join(", "),
       meta: p.year ? String(p.year) : undefined,
       notes: p.notes,
       country: p.country,
+      address: p.address,
       photoUrl: p.photo_url,
-      collected: p.collected,
-      collectedDate: p.collected_date,
-      verb: "Sent",
-      onToggle: () => togglePostcard(p),
+      status: p.status,
+      sentDate: p.sent_date,
+      receivedDate: p.received_date,
+      onMarkSent: () => setPostcardStatus(p, "sent"),
+      onMarkReceived: () => setPostcardStatus(p, "received"),
+      onMarkNotSent: () => setPostcardStatus(p, "not_sent"),
+      onMarkNotReceived: () => setPostcardStatus(p, "sent"),
       onPhotoSelected: (file: File) => uploadPostcardPhoto(p, file),
       onEdit: () => setEditingPostcard(p),
       onDelete: () => deletePostcard(p),
@@ -847,6 +865,7 @@ export default function Home() {
       meta: f.country,
       notes: f.notes,
       country: f.country,
+      address: f.address,
       photoUrl: f.photo_url,
       collected: f.collected,
       collectedDate: f.collected_date,
@@ -910,17 +929,31 @@ export default function Home() {
       <div className="sticky top-0 z-30 -mx-4 my-4 flex flex-wrap items-center justify-between gap-2 bg-paper px-4 py-3 sm:-mx-8 sm:px-8">
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex gap-1 font-mono text-xs uppercase tracking-widest">
-            {(["not collected", "collected", "all"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`rounded-sm border px-2 py-1 ${
-                  filter === f ? "border-ink bg-ink text-paper" : "border-ink/30 text-ink/60"
-                }`}
-              >
-                {f === "all" ? "all" : f === "collected" ? FILTER_VERB[tab] : `not ${FILTER_VERB[tab]}`}
-              </button>
-            ))}
+            {tab === "postcards"
+              ? (["not_sent", "sent", "received", "all"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setPostcardStatusFilter(f)}
+                    className={`rounded-sm border px-2 py-1 ${
+                      postcardStatusFilter === f
+                        ? "border-ink bg-ink text-paper"
+                        : "border-ink/30 text-ink/60"
+                    }`}
+                  >
+                    {f === "all" ? "all" : f === "not_sent" ? "not sent" : f}
+                  </button>
+                ))
+              : (["not collected", "collected", "all"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`rounded-sm border px-2 py-1 ${
+                      filter === f ? "border-ink bg-ink text-paper" : "border-ink/30 text-ink/60"
+                    }`}
+                  >
+                    {f === "all" ? "all" : f === "collected" ? FILTER_VERB[tab] : `not ${FILTER_VERB[tab]}`}
+                  </button>
+                ))}
           </div>
           <div className="relative">
             <svg
@@ -1083,13 +1116,13 @@ export default function Home() {
                 {viewMode === "grid" ? (
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                     {group.items.map((p) => (
-                      <ItemCard key={p.id} {...postcardCardProps(p)} />
+                      <PostcardCard key={p.id} {...postcardCardProps(p)} />
                     ))}
                   </div>
                 ) : (
                   <div className="flex flex-col">
                     {group.items.map((p) => (
-                      <ItemRow key={p.id} {...postcardCardProps(p)} />
+                      <PostcardRow key={p.id} {...postcardCardProps(p)} />
                     ))}
                   </div>
                 )}
@@ -1099,13 +1132,13 @@ export default function Home() {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {filteredPostcards.map((p) => (
-              <ItemCard key={p.id} {...postcardCardProps(p)} />
+              <PostcardCard key={p.id} {...postcardCardProps(p)} />
             ))}
           </div>
         ) : (
           <div className="flex flex-col">
             {filteredPostcards.map((p) => (
-              <ItemRow key={p.id} {...postcardCardProps(p)} />
+              <PostcardRow key={p.id} {...postcardCardProps(p)} />
             ))}
           </div>
         )

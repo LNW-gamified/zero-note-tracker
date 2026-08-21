@@ -44,6 +44,10 @@ body {
   animation: ribbon-in 260ms ease-out;
 }
 
+.ribbon-sent {
+  background: linear-gradient(135deg, #8a6f34 0%, #d9b968 100%);
+}
+
 @keyframes ribbon-in {
   0% {
     opacity: 0;

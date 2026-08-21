@@ -12,15 +12,20 @@ export type ZeroNote = {
   created_at: string;
 };
 
+export type PostcardStatus = "not_sent" | "sent" | "received";
+
 export type Postcard = {
   id: string;
   name: string;
   country: string;
   city: string;
   year: number | null;
+  sent_from: string | null;
+  address: string | null;
   photo_url: string | null;
-  collected: boolean;
-  collected_date: string | null;
+  status: PostcardStatus;
+  sent_date: string | null;
+  received_date: string | null;
   notes: string | null;
   created_at: string;
 };
@@ -44,6 +49,7 @@ export type FoodItem = {
   restaurant: string;
   country: string;
   city: string | null;
+  address: string | null;
   photo_url: string | null;
   collected: boolean;
   collected_date: string | null;
