@@ -1,6 +1,6 @@
 "use client";
 
-export type TabKey = "notes" | "currency" | "postcards" | "souvenirs" | "food";
+export type TabKey = "notes" | "currency" | "postcards" | "souvenirs" | "food" | "country";
 
 export default function Tabs({
   active,
@@ -17,6 +17,7 @@ export default function Tabs({
     { key: "postcards", label: "Postcards" },
     { key: "souvenirs", label: "Souvenirs" },
     { key: "food", label: "Food" },
+    { key: "country", label: "By Country" },
   ];
 
   return (

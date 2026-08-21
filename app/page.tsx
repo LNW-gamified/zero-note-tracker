@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadPhoto, deletePhoto } from "@/lib/storage";
 import { todayLocalISODate } from "@/lib/formatDate";
@@ -117,6 +117,7 @@ const FILTER_VERB: Record<TabKey, string> = {
   postcards: "sent",
   souvenirs: "bought",
   food: "tried",
+  country: "collected",
 };
 
 const MINOR_UNIT_KEYWORDS = ["cent", "penny", "pence"];
@@ -166,6 +167,7 @@ export default function Home() {
   const [postcardCountryFilter, setPostcardCountryFilter] = useState<string>("");
   const [souvenirCountryFilter, setSouvenirCountryFilter] = useState<string>("");
   const [foodCountryFilter, setFoodCountryFilter] = useState<string>("");
+  const [countryViewSelection, setCountryViewSelection] = useState<string>("");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
@@ -222,6 +224,52 @@ export default function Home() {
     () => Array.from(new Set(food.map((f) => f.country))).sort(),
     [food]
   );
+  const allCountries = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...notes.map((n) => n.country),
+          ...currency.map((c) => c.country),
+          ...postcards.map((p) => p.country),
+          ...souvenirs.map((s) => s.country),
+          ...food.map((f) => f.country),
+        ])
+      ).sort(),
+    [notes, currency, postcards, souvenirs, food]
+  );
+
+  const countryNotes = useMemo(
+    () =>
+      notes.filter((n) => n.country === countryViewSelection).sort((a, b) => a.name.localeCompare(b.name)),
+    [notes, countryViewSelection]
+  );
+  const countryCurrency = useMemo(
+    () =>
+      currency
+        .filter((c) => c.country === countryViewSelection)
+        .sort((a, b) => denominationSortValue(a.denomination) - denominationSortValue(b.denomination)),
+    [currency, countryViewSelection]
+  );
+  const countryPostcards = useMemo(
+    () =>
+      postcards
+        .filter((p) => p.country === countryViewSelection)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [postcards, countryViewSelection]
+  );
+  const countrySouvenirs = useMemo(
+    () =>
+      souvenirs
+        .filter((s) => s.country === countryViewSelection)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [souvenirs, countryViewSelection]
+  );
+  const countryFood = useMemo(
+    () => food.filter((f) => f.country === countryViewSelection).sort((a, b) => a.name.localeCompare(b.name)),
+    [food, countryViewSelection]
+  );
+  const countryViewTotal =
+    countryNotes.length + countryCurrency.length + countryPostcards.length + countrySouvenirs.length + countryFood.length;
 
   const filteredNotes = useMemo(() => {
     const byFilter = notes.filter((n) =>
@@ -895,6 +943,7 @@ export default function Home() {
     postcards: { value: postcardCountryFilter, setValue: setPostcardCountryFilter, options: postcardCountries },
     souvenirs: { value: souvenirCountryFilter, setValue: setSouvenirCountryFilter, options: souvenirCountries },
     food: { value: foodCountryFilter, setValue: setFoodCountryFilter, options: foodCountries },
+    country: { value: "", setValue: () => {}, options: [] },
   };
   const activeCountryFilter = countryFilterConfig[tab];
 
@@ -904,6 +953,7 @@ export default function Home() {
     postcards: { value: postcardSort, setValue: setPostcardSort },
     souvenirs: { value: souvenirSort, setValue: setSouvenirSort },
     food: { value: foodSort, setValue: setFoodSort },
+    country: { value: "country", setValue: () => {} },
   };
   const activeSort = sortConfig[tab];
 
@@ -926,6 +976,7 @@ export default function Home() {
           postcards: postcardCount,
           souvenirs: souvenirCount,
           food: foodCount,
+          country: String(allCountries.length),
         }}
       />
 
@@ -935,6 +986,40 @@ export default function Home() {
         </p>
       )}
 
+      {tab === "country" ? (
+        <div className="sticky top-0 z-30 -mx-4 my-4 flex flex-wrap items-center justify-between gap-2 bg-paper px-4 py-3 sm:-mx-8 sm:px-8">
+          <select
+            value={countryViewSelection}
+            onChange={(e) => setCountryViewSelection(e.target.value)}
+            className="min-w-[160px] rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-wide text-ink/70"
+          >
+            <option value="">Choose a country…</option>
+            {allCountries.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <div className="flex gap-1 font-mono text-xs uppercase tracking-widest">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`rounded-sm border px-2 py-1 ${
+                viewMode === "grid" ? "border-ink bg-ink text-paper" : "border-ink/30 text-ink/60"
+              }`}
+            >
+              Grid
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`rounded-sm border px-2 py-1 ${
+                viewMode === "list" ? "border-ink bg-ink text-paper" : "border-ink/30 text-ink/60"
+              }`}
+            >
+              List
+            </button>
+          </div>
+        </div>
+      ) : (
       <div className="sticky top-0 z-30 -mx-4 my-4 flex flex-wrap items-center justify-between gap-2 bg-paper px-4 py-3 sm:-mx-8 sm:px-8">
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex gap-1 font-mono text-xs uppercase tracking-widest">
@@ -1031,6 +1116,7 @@ export default function Home() {
           </button>
         </div>
       </div>
+      )}
 
       {error && (
         <p className="mb-4 rounded-sm border border-stamp bg-stamp/10 px-3 py-2 text-sm text-stamp">
@@ -1040,6 +1126,51 @@ export default function Home() {
 
       {loading ? (
         <p className="text-sm text-ink/50">Loading…</p>
+      ) : tab === "country" ? (
+        !countryViewSelection ? (
+          <EmptyState label="Pick a country to see everything from that trip." />
+        ) : countryViewTotal === 0 ? (
+          <EmptyState label={`Nothing saved for ${countryViewSelection} yet.`} />
+        ) : (
+          <div>
+            <GroupHeader country={countryViewSelection} count={countryViewTotal} />
+            <CategorySection
+              title="0€ Notes"
+              items={countryNotes}
+              viewMode={viewMode}
+              gridItem={(n) => <ItemCard key={n.id} {...noteCardProps(n)} />}
+              listItem={(n) => <ItemRow key={n.id} {...noteCardProps(n)} />}
+            />
+            <CategorySection
+              title="Currency"
+              items={countryCurrency}
+              viewMode={viewMode}
+              gridItem={(c) => <ItemCard key={c.id} {...currencyCardProps(c)} />}
+              listItem={(c) => <ItemRow key={c.id} {...currencyCardProps(c)} />}
+            />
+            <CategorySection
+              title="Postcards"
+              items={countryPostcards}
+              viewMode={viewMode}
+              gridItem={(p) => <PostcardCard key={p.id} {...postcardCardProps(p)} />}
+              listItem={(p) => <PostcardRow key={p.id} {...postcardCardProps(p)} />}
+            />
+            <CategorySection
+              title="Souvenirs"
+              items={countrySouvenirs}
+              viewMode={viewMode}
+              gridItem={(s) => <ItemCard key={s.id} {...souvenirCardProps(s)} />}
+              listItem={(s) => <ItemRow key={s.id} {...souvenirCardProps(s)} />}
+            />
+            <CategorySection
+              title="Food"
+              items={countryFood}
+              viewMode={viewMode}
+              gridItem={(f) => <ItemCard key={f.id} {...foodCardProps(f)} />}
+              listItem={(f) => <ItemRow key={f.id} {...foodCardProps(f)} />}
+            />
+          </div>
+        )
       ) : tab === "notes" ? (
         filteredNotes.length === 0 ? (
           <EmptyState label={search ? "No matches." : "No 0€ notes here yet. Add the first one."} />
@@ -1305,6 +1436,35 @@ export default function Home() {
         />
       )}
     </main>
+  );
+}
+
+function CategorySection<T>({
+  title,
+  items,
+  viewMode,
+  gridItem,
+  listItem,
+}: {
+  title: string;
+  items: T[];
+  viewMode: "grid" | "list";
+  gridItem: (item: T) => ReactNode;
+  listItem: (item: T) => ReactNode;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mb-6">
+      <h2 className="mb-2 flex items-center gap-2 border-b border-ink/10 pb-1 font-display text-lg text-ink">
+        {title}
+        <span className="font-mono text-xs text-ink/40">{items.length}</span>
+      </h2>
+      {viewMode === "grid" ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{items.map(gridItem)}</div>
+      ) : (
+        <div className="flex flex-col">{items.map(listItem)}</div>
+      )}
+    </div>
   );
 }
 
