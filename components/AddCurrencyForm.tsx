@@ -25,7 +25,7 @@ export default function AddCurrencyForm({
   photoUrl,
   onPhotoSelected,
 }: {
-  onSubmit: (values: CurrencyFormValues) => Promise<void>;
+  onSubmit: (values: CurrencyFormValues) => Promise<boolean | void>;
   onClose: () => void;
   initialValues?: CurrencyFormValues;
   existingCurrencyNames: string[];
@@ -66,7 +66,7 @@ export default function AddCurrencyForm({
 
     setSaving(true);
     try {
-      await onSubmit({
+      const ok = await onSubmit({
         currency_name: finalCurrencyName,
         denomination: finalDenomination,
         item_type: finalType,
@@ -74,7 +74,7 @@ export default function AddCurrencyForm({
         year,
         notes,
       });
-      onClose();
+      if (ok !== false) onClose();
     } finally {
       setSaving(false);
     }

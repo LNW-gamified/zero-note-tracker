@@ -28,7 +28,7 @@ export default function AddItemForm({
   submitLabel?: string;
   photoUrl?: string | null;
   onPhotoSelected?: (file: File) => Promise<void>;
-  onSubmit: (values: Record<string, string>) => Promise<void>;
+  onSubmit: (values: Record<string, string>) => Promise<boolean | void>;
   onClose: () => void;
 }) {
   const [values, setValues] = useState<Record<string, string>>(initialValues ?? {});
@@ -40,8 +40,8 @@ export default function AddItemForm({
     e.preventDefault();
     setSaving(true);
     try {
-      await onSubmit(values);
-      onClose();
+      const ok = await onSubmit(values);
+      if (ok !== false) onClose();
     } finally {
       setSaving(false);
     }

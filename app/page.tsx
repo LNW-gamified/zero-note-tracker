@@ -120,7 +120,7 @@ const FILTER_VERB: Record<TabKey, string> = {
   country: "collected",
 };
 
-const MINOR_UNIT_KEYWORDS = ["cent", "penny", "pence"];
+const MINOR_UNIT_KEYWORDS = ["cent", "penny", "pence", "rappen"];
 
 function denominationSortValue(label: string): number {
   const match = label.match(/[\d.]+/);
@@ -573,7 +573,7 @@ export default function Home() {
       isDuplicateNote(candidate) &&
       !window.confirm("An entry with this name/country/city already exists. Add it anyway?")
     ) {
-      return;
+      return false;
     }
     const { error } = await supabase.from("zero_notes").insert({
       name: values.name,
@@ -583,8 +583,12 @@ export default function Home() {
       identification: values.identification || null,
       notes: values.notes || null,
     });
-    if (error) return setError(error.message);
+    if (error) {
+      setError(error.message);
+      return false;
+    }
     loadAll();
+    return true;
   }
 
   async function updateNote(original: ZeroNote, values: Record<string, string>) {
@@ -593,7 +597,7 @@ export default function Home() {
       isDuplicateNote(candidate, original.id) &&
       !window.confirm("Another entry with this name/country/city already exists. Save anyway?")
     ) {
-      return;
+      return false;
     }
     const { error } = await supabase
       .from("zero_notes")
@@ -606,9 +610,13 @@ export default function Home() {
         notes: values.notes || null,
       })
       .eq("id", original.id);
-    if (error) return setError(error.message);
+    if (error) {
+      setError(error.message);
+      return false;
+    }
     setEditingNote(null);
     loadAll();
+    return true;
   }
 
   async function deleteNote(n: ZeroNote) {
@@ -625,7 +633,7 @@ export default function Home() {
       isDuplicatePostcard(candidate) &&
       !window.confirm("An entry with this title/country/city already exists. Add it anyway?")
     ) {
-      return;
+      return false;
     }
     const { error } = await supabase.from("postcards").insert({
       name: values.name,
@@ -636,8 +644,12 @@ export default function Home() {
       year: values.year ? Number(values.year) : null,
       notes: values.notes || null,
     });
-    if (error) return setError(error.message);
+    if (error) {
+      setError(error.message);
+      return false;
+    }
     loadAll();
+    return true;
   }
 
   async function updatePostcard(original: Postcard, values: Record<string, string>) {
@@ -646,7 +658,7 @@ export default function Home() {
       isDuplicatePostcard(candidate, original.id) &&
       !window.confirm("Another entry with this title/country/city already exists. Save anyway?")
     ) {
-      return;
+      return false;
     }
     const { error } = await supabase
       .from("postcards")
@@ -660,9 +672,13 @@ export default function Home() {
         notes: values.notes || null,
       })
       .eq("id", original.id);
-    if (error) return setError(error.message);
+    if (error) {
+      setError(error.message);
+      return false;
+    }
     setEditingPostcard(null);
     loadAll();
+    return true;
   }
 
   async function deletePostcard(p: Postcard) {
@@ -679,7 +695,7 @@ export default function Home() {
       isDuplicateSouvenir(candidate) &&
       !window.confirm("An entry with this item/country/city already exists. Add it anyway?")
     ) {
-      return;
+      return false;
     }
     const { error } = await supabase.from("souvenirs").insert({
       name: values.name,
@@ -690,8 +706,12 @@ export default function Home() {
       price: values.price ? Number(values.price) : null,
       notes: values.notes || null,
     });
-    if (error) return setError(error.message);
+    if (error) {
+      setError(error.message);
+      return false;
+    }
     loadAll();
+    return true;
   }
 
   async function updateSouvenir(original: Souvenir, values: Record<string, string>) {
@@ -700,7 +720,7 @@ export default function Home() {
       isDuplicateSouvenir(candidate, original.id) &&
       !window.confirm("Another entry with this item/country/city already exists. Save anyway?")
     ) {
-      return;
+      return false;
     }
     const { error } = await supabase
       .from("souvenirs")
@@ -714,9 +734,13 @@ export default function Home() {
         notes: values.notes || null,
       })
       .eq("id", original.id);
-    if (error) return setError(error.message);
+    if (error) {
+      setError(error.message);
+      return false;
+    }
     setEditingSouvenir(null);
     loadAll();
+    return true;
   }
 
   async function deleteSouvenir(s: Souvenir) {
@@ -733,7 +757,7 @@ export default function Home() {
       isDuplicateFood(candidate) &&
       !window.confirm("An entry with this dish/restaurant/country already exists. Add it anyway?")
     ) {
-      return;
+      return false;
     }
     const { error } = await supabase.from("food_items").insert({
       name: values.name,
@@ -743,8 +767,12 @@ export default function Home() {
       address: values.address || null,
       notes: values.notes || null,
     });
-    if (error) return setError(error.message);
+    if (error) {
+      setError(error.message);
+      return false;
+    }
     loadAll();
+    return true;
   }
 
   async function updateFood(original: FoodItem, values: Record<string, string>) {
@@ -753,7 +781,7 @@ export default function Home() {
       isDuplicateFood(candidate, original.id) &&
       !window.confirm("Another entry with this dish/restaurant/country already exists. Save anyway?")
     ) {
-      return;
+      return false;
     }
     const { error } = await supabase
       .from("food_items")
@@ -766,9 +794,13 @@ export default function Home() {
         notes: values.notes || null,
       })
       .eq("id", original.id);
-    if (error) return setError(error.message);
+    if (error) {
+      setError(error.message);
+      return false;
+    }
     setEditingFood(null);
     loadAll();
+    return true;
   }
 
   async function deleteFood(f: FoodItem) {
@@ -784,7 +816,7 @@ export default function Home() {
       isDuplicateCurrency(values) &&
       !window.confirm("An entry with this currency/denomination/country already exists. Add it anyway?")
     ) {
-      return;
+      return false;
     }
     const { error } = await supabase.from("currency_items").insert({
       currency_name: values.currency_name,
@@ -794,8 +826,12 @@ export default function Home() {
       year: values.year ? Number(values.year) : null,
       notes: values.notes || null,
     });
-    if (error) return setError(error.message);
+    if (error) {
+      setError(error.message);
+      return false;
+    }
     loadAll();
+    return true;
   }
 
   async function updateCurrency(original: CurrencyItem, values: CurrencyFormValues) {
@@ -803,7 +839,7 @@ export default function Home() {
       isDuplicateCurrency(values, original.id) &&
       !window.confirm("Another entry with this currency/denomination/country already exists. Save anyway?")
     ) {
-      return;
+      return false;
     }
     const { error } = await supabase
       .from("currency_items")
@@ -816,9 +852,13 @@ export default function Home() {
         notes: values.notes || null,
       })
       .eq("id", original.id);
-    if (error) return setError(error.message);
+    if (error) {
+      setError(error.message);
+      return false;
+    }
     setEditingCurrency(null);
     loadAll();
+    return true;
   }
 
   async function deleteCurrency(c: CurrencyItem) {
@@ -969,7 +1009,10 @@ export default function Home() {
 
       <Tabs
         active={tab}
-        onChange={setTab}
+        onChange={(t) => {
+          setTab(t);
+          setSearch("");
+        }}
         counts={{
           notes: noteCount,
           currency: currencyCount,
