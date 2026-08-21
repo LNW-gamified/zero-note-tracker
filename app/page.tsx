@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadPhoto, deletePhoto } from "@/lib/storage";
+import { todayLocalISODate } from "@/lib/formatDate";
 import { ZeroNote, CurrencyItem } from "@/lib/types";
 import ItemCard from "@/components/ItemCard";
 import ItemRow from "@/components/ItemRow";
@@ -159,7 +160,7 @@ export default function Home() {
       .from("zero_notes")
       .update({
         collected,
-        collected_date: collected ? new Date().toISOString().slice(0, 10) : null,
+        collected_date: collected ? todayLocalISODate() : null,
       })
       .eq("id", n.id);
     if (error) return setError(error.message);
@@ -172,7 +173,7 @@ export default function Home() {
       .from("currency_items")
       .update({
         collected,
-        collected_date: collected ? new Date().toISOString().slice(0, 10) : null,
+        collected_date: collected ? todayLocalISODate() : null,
       })
       .eq("id", c.id);
     if (error) return setError(error.message);
@@ -362,7 +363,7 @@ export default function Home() {
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-4 pb-24 pt-8 sm:px-8">
       <header className="mb-6">
-        <p className="font-mono text-xs uppercase tracking-[0.25em] text-teal">Personal catalog</p>
+        <p className="font-mono text-xs uppercase tracking-[0.25em] text-gold">Personal catalog</p>
         <h1 className="font-display text-3xl italic text-ink sm:text-4xl">The Ledger</h1>
         <p className="mt-1 text-sm text-ink/60">
           Zero-euro souvenir notes and world currency, tracked one stamp at a time.

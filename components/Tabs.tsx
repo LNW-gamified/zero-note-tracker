@@ -25,7 +25,7 @@ export default function Tabs({
           }`}
         >
           {t.label}
-          <span className="ml-2 font-mono text-xs text-teal">
+          <span className="ml-2 font-mono text-xs text-gold">
             {counts[t.key]}
           </span>
           {active === t.key && (
