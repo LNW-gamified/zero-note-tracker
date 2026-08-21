@@ -64,8 +64,8 @@ export default function Home() {
   const [showAdd, setShowAdd] = useState(false);
   const [editingNote, setEditingNote] = useState<ZeroNote | null>(null);
   const [editingCurrency, setEditingCurrency] = useState<CurrencyItem | null>(null);
-  const [filter, setFilter] = useState<"all" | "collected" | "not collected">("all");
-  const [noteSort, setNoteSort] = useState<"date" | "country">("date");
+  const [filter, setFilter] = useState<"all" | "collected" | "not collected">("not collected");
+  const [noteSort, setNoteSort] = useState<"date" | "country">("country");
   const [currencySort, setCurrencySort] = useState<"country" | "date">("country");
   const [noteCountryFilter, setNoteCountryFilter] = useState<string>("");
   const [currencyCountryFilter, setCurrencyCountryFilter] = useState<string>("");
@@ -374,7 +374,7 @@ export default function Home() {
       <div className="sticky top-0 z-30 -mx-4 my-4 flex flex-wrap items-center justify-between gap-2 bg-paper px-4 py-3 sm:-mx-8 sm:px-8">
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex gap-1 font-mono text-xs uppercase tracking-widest">
-            {(["all", "collected", "not collected"] as const).map((f) => (
+            {(["not collected", "collected", "all"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
@@ -458,8 +458,8 @@ export default function Home() {
               onChange={(e) => setNoteSort(e.target.value as "date" | "country")}
               className="min-w-[104px] rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1 font-mono text-xs uppercase tracking-wide text-ink/70"
             >
-              <option value="date">Newest</option>
               <option value="country">Country</option>
+              <option value="date">Newest</option>
             </select>
           ) : (
             <select
