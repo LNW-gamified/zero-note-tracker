@@ -122,7 +122,9 @@ export default function Home() {
         )
       : byCountry;
     if (noteSort === "country") {
-      return [...bySearch].sort((a, b) => a.country.localeCompare(b.country));
+      return [...bySearch].sort(
+        (a, b) => a.country.localeCompare(b.country) || a.name.localeCompare(b.name)
+      );
     }
     return bySearch;
   }, [notes, filter, noteSort, search, noteCountryFilter]);
