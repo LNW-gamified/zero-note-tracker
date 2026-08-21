@@ -1132,44 +1132,105 @@ export default function Home() {
         ) : countryViewTotal === 0 ? (
           <EmptyState label={`Nothing saved for ${countryViewSelection} yet.`} />
         ) : (
-          <div>
-            <GroupHeader country={countryViewSelection} count={countryViewTotal} />
-            <CategorySection
-              title="0€ Notes"
-              items={countryNotes}
-              viewMode={viewMode}
-              gridItem={(n) => <ItemCard key={n.id} {...noteCardProps(n)} />}
-              listItem={(n) => <ItemRow key={n.id} {...noteCardProps(n)} />}
-            />
-            <CategorySection
-              title="Currency"
-              items={countryCurrency}
-              viewMode={viewMode}
-              gridItem={(c) => <ItemCard key={c.id} {...currencyCardProps(c)} />}
-              listItem={(c) => <ItemRow key={c.id} {...currencyCardProps(c)} />}
-            />
-            <CategorySection
-              title="Postcards"
-              items={countryPostcards}
-              viewMode={viewMode}
-              gridItem={(p) => <PostcardCard key={p.id} {...postcardCardProps(p)} />}
-              listItem={(p) => <PostcardRow key={p.id} {...postcardCardProps(p)} />}
-            />
-            <CategorySection
-              title="Souvenirs"
-              items={countrySouvenirs}
-              viewMode={viewMode}
-              gridItem={(s) => <ItemCard key={s.id} {...souvenirCardProps(s)} />}
-              listItem={(s) => <ItemRow key={s.id} {...souvenirCardProps(s)} />}
-            />
-            <CategorySection
-              title="Food"
-              items={countryFood}
-              viewMode={viewMode}
-              gridItem={(f) => <ItemCard key={f.id} {...foodCardProps(f)} />}
-              listItem={(f) => <ItemRow key={f.id} {...foodCardProps(f)} />}
-            />
-          </div>
+          (() => {
+            const activeNotes = countryNotes.filter((n) => !n.collected);
+            const doneNotes = countryNotes.filter((n) => n.collected);
+            const activeCurrency = countryCurrency.filter((c) => !c.collected);
+            const doneCurrency = countryCurrency.filter((c) => c.collected);
+            const activePostcards = countryPostcards.filter((p) => p.status !== "received");
+            const donePostcards = countryPostcards.filter((p) => p.status === "received");
+            const activeSouvenirs = countrySouvenirs.filter((s) => !s.collected);
+            const doneSouvenirs = countrySouvenirs.filter((s) => s.collected);
+            const activeFood = countryFood.filter((f) => !f.collected);
+            const doneFood = countryFood.filter((f) => f.collected);
+            const completedTotal =
+              doneNotes.length + doneCurrency.length + donePostcards.length + doneSouvenirs.length + doneFood.length;
+
+            return (
+              <div>
+                <GroupHeader country={countryViewSelection} count={countryViewTotal} />
+                <CategorySection
+                  title="0€ Notes"
+                  items={activeNotes}
+                  viewMode={viewMode}
+                  gridItem={(n) => <ItemCard key={n.id} {...noteCardProps(n)} />}
+                  listItem={(n) => <ItemRow key={n.id} {...noteCardProps(n)} />}
+                />
+                <CategorySection
+                  title="Currency"
+                  items={activeCurrency}
+                  viewMode={viewMode}
+                  gridItem={(c) => <ItemCard key={c.id} {...currencyCardProps(c)} />}
+                  listItem={(c) => <ItemRow key={c.id} {...currencyCardProps(c)} />}
+                />
+                <CategorySection
+                  title="Postcards"
+                  items={activePostcards}
+                  viewMode={viewMode}
+                  gridItem={(p) => <PostcardCard key={p.id} {...postcardCardProps(p)} />}
+                  listItem={(p) => <PostcardRow key={p.id} {...postcardCardProps(p)} />}
+                />
+                <CategorySection
+                  title="Souvenirs"
+                  items={activeSouvenirs}
+                  viewMode={viewMode}
+                  gridItem={(s) => <ItemCard key={s.id} {...souvenirCardProps(s)} />}
+                  listItem={(s) => <ItemRow key={s.id} {...souvenirCardProps(s)} />}
+                />
+                <CategorySection
+                  title="Food"
+                  items={activeFood}
+                  viewMode={viewMode}
+                  gridItem={(f) => <ItemCard key={f.id} {...foodCardProps(f)} />}
+                  listItem={(f) => <ItemRow key={f.id} {...foodCardProps(f)} />}
+                />
+
+                {completedTotal > 0 && (
+                  <div className="mt-8">
+                    <div className="mb-3 flex items-center gap-2 border-b-2 border-ink/15 pb-2">
+                      <h2 className="font-display text-xl text-ink">Completed</h2>
+                      <span className="font-mono text-xs text-gold">{completedTotal}</span>
+                    </div>
+                    <CategorySection
+                      title="0€ Notes"
+                      items={doneNotes}
+                      viewMode={viewMode}
+                      gridItem={(n) => <ItemCard key={n.id} {...noteCardProps(n)} />}
+                      listItem={(n) => <ItemRow key={n.id} {...noteCardProps(n)} />}
+                    />
+                    <CategorySection
+                      title="Currency"
+                      items={doneCurrency}
+                      viewMode={viewMode}
+                      gridItem={(c) => <ItemCard key={c.id} {...currencyCardProps(c)} />}
+                      listItem={(c) => <ItemRow key={c.id} {...currencyCardProps(c)} />}
+                    />
+                    <CategorySection
+                      title="Postcards"
+                      items={donePostcards}
+                      viewMode={viewMode}
+                      gridItem={(p) => <PostcardCard key={p.id} {...postcardCardProps(p)} />}
+                      listItem={(p) => <PostcardRow key={p.id} {...postcardCardProps(p)} />}
+                    />
+                    <CategorySection
+                      title="Souvenirs"
+                      items={doneSouvenirs}
+                      viewMode={viewMode}
+                      gridItem={(s) => <ItemCard key={s.id} {...souvenirCardProps(s)} />}
+                      listItem={(s) => <ItemRow key={s.id} {...souvenirCardProps(s)} />}
+                    />
+                    <CategorySection
+                      title="Food"
+                      items={doneFood}
+                      viewMode={viewMode}
+                      gridItem={(f) => <ItemCard key={f.id} {...foodCardProps(f)} />}
+                      listItem={(f) => <ItemRow key={f.id} {...foodCardProps(f)} />}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })()
         )
       ) : tab === "notes" ? (
         filteredNotes.length === 0 ? (
