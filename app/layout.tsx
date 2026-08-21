@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Libre_Caslon_Text, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
+const libreCaslon = Libre_Caslon_Text({
   subsets: ["latin"],
-  variable: "--font-fraunces",
-  weight: ["400", "500", "600"],
+  variable: "--font-display",
+  weight: ["400", "700"],
   style: ["normal", "italic"],
 });
 
@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} font-body bg-paper text-ink`}
+        className={`${libreCaslon.variable} ${plexSans.variable} ${plexMono.variable} font-body bg-paper text-ink`}
       >
         {children}
       </body>

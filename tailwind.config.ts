@@ -13,7 +13,7 @@ const config: Config = {
         gold: "#D9B968",
       },
       fontFamily: {
-        display: ["var(--font-fraunces)", "serif"],
+        display: ["var(--font-display)", "serif"],
         body: ["var(--font-plex)", "sans-serif"],
         mono: ["var(--font-plex-mono)", "monospace"],
       },
