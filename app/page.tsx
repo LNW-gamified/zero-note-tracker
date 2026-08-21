@@ -45,6 +45,15 @@ function currencyToFormValues(c: CurrencyItem): CurrencyFormValues {
 
 const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
 
+const MINOR_UNIT_KEYWORDS = ["cent", "penny", "pence"];
+
+function denominationSortValue(label: string): number {
+  const match = label.match(/[\d.]+/);
+  const num = match ? parseFloat(match[0]) : 0;
+  const isMinorUnit = MINOR_UNIT_KEYWORDS.some((kw) => label.toLowerCase().includes(kw));
+  return isMinorUnit ? num : num * 100;
+}
+
 function groupByCountry<T extends { country: string }>(items: T[]): { country: string; items: T[] }[] {
   const groups: { country: string; items: T[] }[] = [];
   for (const item of items) {
@@ -152,7 +161,9 @@ export default function Home() {
       );
     }
     return [...bySearch].sort(
-      (a, b) => a.country.localeCompare(b.country) || a.denomination.localeCompare(b.denomination)
+      (a, b) =>
+        a.country.localeCompare(b.country) ||
+        denominationSortValue(a.denomination) - denominationSortValue(b.denomination)
     );
   }, [currency, filter, search, currencySort, currencyCountryFilter]);
 
