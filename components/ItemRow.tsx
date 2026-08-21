@@ -104,7 +104,7 @@ export default function ItemRow({
           className={`rounded-sm border px-2 py-1 ${
             collected
               ? "border-teal text-teal hover:bg-teal hover:text-paper"
-              : "border-stamp text-stamp hover:bg-stamp hover:text-paper"
+              : "border-skyBlue text-skyBlue hover:bg-skyBlue hover:text-paper"
           }`}
         >
           {collected ? "Undo" : verb === "Collected" ? "Got it" : verb}

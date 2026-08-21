@@ -35,6 +35,8 @@ export type Souvenir = {
   name: string;
   country: string;
   city: string | null;
+  place: string | null;
+  address: string | null;
   price: number | null;
   photo_url: string | null;
   collected: boolean;

@@ -11,6 +11,7 @@ const config: Config = {
         teal: "#4FB9B3",
         stamp: "#E2665F",
         gold: "#D9B968",
+        skyBlue: "#7EC8E3",
       },
       fontFamily: {
         display: ["var(--font-display)", "serif"],

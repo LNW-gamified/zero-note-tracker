@@ -129,7 +129,7 @@ export default function ItemCard({
           className={`mt-3 w-full rounded-sm border px-3 py-1.5 font-mono text-xs uppercase tracking-widest transition-colors ${
             collected
               ? "border-teal text-teal hover:bg-teal hover:text-paper"
-              : "border-stamp text-stamp hover:bg-stamp hover:text-paper"
+              : "border-skyBlue text-skyBlue hover:bg-skyBlue hover:text-paper"
           }`}
         >
           {collected ? `Mark not ${verb.toLowerCase()}` : `Mark ${verb.toLowerCase()}`}

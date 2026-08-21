@@ -114,7 +114,7 @@ export default function PostcardRow({
         {status === "not_sent" ? (
           <button
             onClick={onMarkSent}
-            className="rounded-sm border border-stamp px-2 py-1 text-stamp hover:bg-stamp hover:text-paper"
+            className="rounded-sm border border-skyBlue px-2 py-1 text-skyBlue hover:bg-skyBlue hover:text-paper"
           >
             Sent
           </button>

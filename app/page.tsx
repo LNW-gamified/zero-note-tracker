@@ -59,6 +59,8 @@ function postcardToFormValues(p: Postcard): Record<string, string> {
 const SOUVENIR_FIELDS: Field[] = [
   { name: "name", label: "Item", required: true, placeholder: "e.g. Hand-painted tile" },
   { name: "price", label: "Price", type: "number", step: "0.01", placeholder: "0.00" },
+  { name: "place", label: "Place bought", placeholder: "e.g. Local artisan market" },
+  { name: "address", label: "Address", placeholder: "e.g. Rua Augusta, Lisbon" },
   { name: "city", label: "City", placeholder: "e.g. Lisbon" },
   { name: "country", label: "Country", required: true, placeholder: "e.g. Portugal" },
   { name: "notes", label: "Notes", type: "textarea", placeholder: "Freeform notes…" },
@@ -69,6 +71,8 @@ function souvenirToFormValues(s: Souvenir): Record<string, string> {
     name: s.name,
     country: s.country,
     city: s.city ?? "",
+    place: s.place ?? "",
+    address: s.address ?? "",
     price: s.price != null ? String(s.price) : "",
     notes: s.notes ?? "",
   };
@@ -306,7 +310,7 @@ export default function Home() {
     const q = search.trim().toLowerCase();
     const bySearch = q
       ? byCountry.filter((s) =>
-          [s.name, s.country, s.city, s.notes]
+          [s.name, s.country, s.city, s.place, s.address, s.notes]
             .filter(Boolean)
             .join(" ")
             .toLowerCase()
@@ -633,6 +637,8 @@ export default function Home() {
       name: values.name,
       country: values.country,
       city: values.city || null,
+      place: values.place || null,
+      address: values.address || null,
       price: values.price ? Number(values.price) : null,
       notes: values.notes || null,
     });
@@ -654,6 +660,8 @@ export default function Home() {
         name: values.name,
         country: values.country,
         city: values.city || null,
+        place: values.place || null,
+        address: values.address || null,
         price: values.price ? Number(values.price) : null,
         notes: values.notes || null,
       })
@@ -842,10 +850,11 @@ export default function Home() {
     return {
       addedAt: s.created_at,
       title: s.name,
-      subtitle: [s.city, s.country].filter(Boolean).join(", "),
+      subtitle: [s.place, s.city, s.country].filter(Boolean).join(", "),
       meta: s.price != null ? `$${s.price.toFixed(2)}` : undefined,
       notes: s.notes,
       country: s.country,
+      address: s.address,
       photoUrl: s.photo_url,
       collected: s.collected,
       collectedDate: s.collected_date,

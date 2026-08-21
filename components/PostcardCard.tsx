@@ -145,7 +145,7 @@ export default function PostcardCard({
         {status === "not_sent" ? (
           <button
             onClick={onMarkSent}
-            className="mt-3 w-full rounded-sm border border-stamp px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-stamp transition-colors hover:bg-stamp hover:text-paper"
+            className="mt-3 w-full rounded-sm border border-skyBlue px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-skyBlue transition-colors hover:bg-skyBlue hover:text-paper"
           >
             Mark sent
           </button>

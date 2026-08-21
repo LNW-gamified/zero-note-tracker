@@ -56,6 +56,8 @@ create table if not exists souvenirs (
   name text not null,
   country text not null,
   city text,
+  place text,
+  address text,
   price numeric(10,2),
   photo_url text,
   collected boolean not null default false,
