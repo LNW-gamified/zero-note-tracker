@@ -1,27 +1,31 @@
 "use client";
 
+export type TabKey = "notes" | "currency" | "postcards" | "souvenirs" | "food";
+
 export default function Tabs({
   active,
   onChange,
   counts,
 }: {
-  active: "notes" | "currency" | "postcards";
-  onChange: (tab: "notes" | "currency" | "postcards") => void;
-  counts: { notes: string; currency: string; postcards: string };
+  active: TabKey;
+  onChange: (tab: TabKey) => void;
+  counts: Record<TabKey, string>;
 }) {
-  const tabs: { key: "notes" | "currency" | "postcards"; label: string }[] = [
+  const tabs: { key: TabKey; label: string }[] = [
     { key: "notes", label: "0€ Notes" },
     { key: "currency", label: "Currency" },
     { key: "postcards", label: "Postcards" },
+    { key: "souvenirs", label: "Souvenirs" },
+    { key: "food", label: "Food" },
   ];
 
   return (
-    <div className="flex gap-1 border-b-2 border-ink/15">
+    <div className="flex gap-1 overflow-x-auto border-b-2 border-ink/15">
       {tabs.map((t) => (
         <button
           key={t.key}
           onClick={() => onChange(t.key)}
-          className={`relative px-4 py-2 font-display text-lg transition-colors ${
+          className={`relative shrink-0 px-4 py-2 font-display text-lg transition-colors ${
             active === t.key ? "text-ink" : "text-ink/40"
           }`}
         >

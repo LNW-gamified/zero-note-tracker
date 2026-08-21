@@ -46,6 +46,34 @@ create table if not exists postcards (
   created_at timestamptz not null default now()
 );
 
+-- Souvenirs bought (or wanted) at each stop, with a price for budgeting
+create table if not exists souvenirs (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  country text not null,
+  city text,
+  price numeric(10,2),
+  photo_url text,
+  collected boolean not null default false,
+  collected_date date,
+  notes text,
+  created_at timestamptz not null default now()
+);
+
+-- Food/dishes tried, and where (restaurant)
+create table if not exists food_items (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  restaurant text not null,
+  country text not null,
+  city text,
+  photo_url text,
+  collected boolean not null default false,
+  collected_date date,
+  notes text,
+  created_at timestamptz not null default now()
+);
+
 -- Storage bucket for photos (both catalogs use it)
 insert into storage.buckets (id, name, public)
 values ('catalog-photos', 'catalog-photos', true)
@@ -57,6 +85,8 @@ on conflict (id) do nothing;
 alter table zero_notes enable row level security;
 alter table currency_items enable row level security;
 alter table postcards enable row level security;
+alter table souvenirs enable row level security;
+alter table food_items enable row level security;
 
 create policy "anon full access to zero_notes" on zero_notes
   for all using (true) with check (true);
@@ -65,6 +95,12 @@ create policy "anon full access to currency_items" on currency_items
   for all using (true) with check (true);
 
 create policy "anon full access to postcards" on postcards
+  for all using (true) with check (true);
+
+create policy "anon full access to souvenirs" on souvenirs
+  for all using (true) with check (true);
+
+create policy "anon full access to food_items" on food_items
   for all using (true) with check (true);
 
 create policy "anon read/write catalog-photos" on storage.objects

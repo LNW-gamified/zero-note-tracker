@@ -7,6 +7,7 @@ export type Field = {
   label: string;
   placeholder?: string;
   type?: "text" | "number" | "textarea";
+  step?: string;
   required?: boolean;
   options?: string[];
 };
@@ -134,6 +135,7 @@ export default function AddItemForm({
               ) : (
                 <input
                   type={f.type ?? "text"}
+                  step={f.step}
                   required={f.required}
                   placeholder={f.placeholder}
                   className="rounded-sm border border-ink/30 bg-[#1e2530] px-2 py-1.5"
